@@ -197,13 +197,18 @@ export function ExportSheet({ open, onClose, html, page, css, title }: ExportPro
 
   const Row = ({ icon, title: t, desc, kind, badge }: { icon: string; title: string; desc: string; kind: 'pdf' | 'docx' | 'html' | 'txt'; badge?: string }) => (
     <div className="check-item">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <button
+        type="button"
+        onClick={() => doExport(kind, native ? 'share' : 'download')}
+        disabled={!!busy}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left' }}
+      >
         <span style={{ color: 'var(--accent)' }}><Icon name={icon} size={20} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{t} {badge && <span className="tag-mini">{badge}</span>}</div>
           <div className="ctx" style={{ margin: '2px 0 0' }}>{desc}</div>
         </div>
-      </div>
+      </button>
       <div className="acts" style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {native ? (
           <>

@@ -214,7 +214,7 @@ try {
   try {
     const [dl] = await Promise.all([
       page.waitForEvent('download', { timeout: 90000 }),
-      page.getByText('Word (DOCX)').click(),
+      page.locator('.sheet .check-item', { hasText: 'Word (DOCX)' }).locator('button').first().click(),
     ])
     const p = path.join(OUT, 'sample-export.docx')
     await dl.saveAs(p)
