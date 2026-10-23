@@ -77,7 +77,7 @@ try {
 
   // भाषा/फ़ॉन्ट जाँच
   const title = await page.title()
-  if (title.includes('वर्डलीगल')) ok('hindi title present')
+  if (title.includes('WordLegal')) ok('title present (WordLegal)')
   else bad('title missing: ' + title)
 
   // नया खाली लीगल मसौदा
@@ -118,18 +118,33 @@ try {
 
   // ऑटोसेव
   const saved = await page.locator('.save-pill').innerText()
-  if (saved.includes('सहेजा गया')) ok('autosave indicator saved')
+  if (saved.includes('Saved')) ok('autosave indicator saved')
   else notes.push('save pill: ' + saved)
 
   // रिबन टैब
-  for (const [tab, name] of [['लेआउट', '03-ribbon-layout'], ['विधिक', '04-ribbon-legal'], ['सम्मिलित करें', '05-ribbon-insert']]) {
+  for (const [tab, name] of [['Layout', '03-ribbon-layout'], ['Legal', '04-ribbon-legal'], ['Insert', '05-ribbon-insert']]) {
     await page.getByRole('button', { name: tab, exact: true }).first().click()
     await page.waitForTimeout(250)
     await shot(page, name + '-tablet')
   }
 
+  /* ---- UI भाषा: English (प्राथमिक) ⇄ हिन्दी ---- */
+  const enTab = await page.getByRole('button', { name: 'Home', exact: true }).count()
+  if (enTab > 0) ok('UI defaults to English')
+  else bad('UI is not English by default')
+  await page.locator('.topbar button[title="Switch UI to Hindi"]').click()
+  await page.waitForTimeout(350)
+  const hiTab = await page.getByRole('button', { name: 'होम', exact: true }).count()
+  if (hiTab > 0) ok('switches to Hindi UI')
+  else bad('Hindi UI switch failed')
+  await shot(page, '05b-ui-hindi-tablet')
+  await page.locator('.topbar button[title="Switch UI to English"]').click()
+  await page.waitForTimeout(350)
+  if (await page.getByRole('button', { name: 'Home', exact: true }).count() > 0) ok('switches back to English UI')
+  else bad('English UI switch failed')
+
   // शब्दकोश
-  await page.locator('button[title="शब्दकोश"]').first().click()
+  await page.locator('button[title="Legal dictionary"]').first().click()
   await page.waitForSelector('.sheet .search')
   await page.locator('.sheet .search').fill('जमानत')
   await page.waitForTimeout(500)
@@ -141,26 +156,26 @@ try {
   await page.locator('.dict-row').first().click()
   await page.waitForTimeout(300)
   await shot(page, '07-dictionary-detail')
-  await page.getByRole('button', { name: 'दस्तावेज़ में जोड़ें' }).click()
+  await page.getByRole('button', { name: 'Insert into document' }).click()
   await page.waitForTimeout(600)
   const afterDict = await pm.innerText()
   if (afterDict.includes('ज़मानत') || afterDict.includes('जमानत')) ok('dictionary word inserted into document')
   else bad('dictionary insert failed')
 
   // केस विवरण
-  await page.locator('.topbar button[title="अधिक"]').click()
+  await page.locator('.topbar button[title="More"]').click()
   await page.waitForTimeout(300)
-  await page.getByRole('button', { name: 'केस विवरण भरें' }).click()
+  await page.getByRole('button', { name: 'Case details' }).click()
   await page.waitForSelector('.sheet')
   await page.waitForTimeout(300)
   await shot(page, '08-case-details-tablet')
-  await page.getByPlaceholder('स्थान / जिला').fill('राजस्थान, जयपुर')
-  await page.getByPlaceholder('अधिवक्ता का नाम').fill('श्री रामकिशोर शर्मा')
-  await page.getByPlaceholder('प्रार्थी का नाम').fill('मोहन लाल')
+  await page.getByPlaceholder('Place / district').fill('राजस्थान, जयपुर')
+  await page.getByPlaceholder('Advocate’s name').fill('श्री रामकिशोर शर्मा')
+  await page.getByPlaceholder('Applicant’s name').fill('मोहन लाल')
   await page.waitForTimeout(300)
-  await page.getByRole('button', { name: 'सभी फ़ील्ड भरें' }).click()
+  await page.getByRole('button', { name: 'Fill all fields' }).click()
   await page.waitForTimeout(600)
-  await page.locator('.sheet-head button[title="बंद करें"]').click()
+  await page.locator('.sheet-head button[title="Close"]').click()
   await page.waitForTimeout(400)
   const filled = await pm.innerText()
   if (filled.includes('जयपुर') || filled.includes('मोहन लाल')) {
@@ -172,8 +187,8 @@ try {
   }
 
   // प्रिंट पूर्वावलोकन + PDF
-  await page.getByRole('button', { name: 'दृश्य', exact: true }).click()
-  await page.locator('button[title="प्रिंट पूर्वावलोकन"]').first().click()
+  await page.getByRole('button', { name: 'View', exact: true }).click()
+  await page.locator('button[title="Print preview"]').first().click()
   await page.waitForSelector('.preview-page', { timeout: 90000 })
   await page.waitForTimeout(900)
   const pgCount = await page.locator('.preview-page').count()
@@ -192,7 +207,7 @@ try {
   try {
     const [dl] = await Promise.all([
       page.waitForEvent('download', { timeout: 120000 }),
-      page.getByRole('button', { name: /PDF साझा करें/ }).click(),
+      page.getByRole('button', { name: /Share PDF/ }).click(),
     ])
     const p = path.join(OUT, 'sample-export.pdf')
     await dl.saveAs(p)
@@ -204,11 +219,11 @@ try {
     bad('PDF export failed: ' + e.message)
   }
 
-  await page.locator('.sheet-head button[title="बंद करें"]').click()
+  await page.locator('.sheet-head button[title="Close"]').click()
   await page.waitForTimeout(400)
 
   // DOCX निर्यात
-  await page.locator('button[title="निर्यात"]').first().click()
+  await page.locator('button[title="Export"]').first().click()
   await page.waitForTimeout(500)
   await shot(page, '10-export-sheet')
   try {
@@ -235,11 +250,11 @@ try {
     await page.keyboard.press('Escape')
     await page.waitForTimeout(250)
   }
-  await page.locator('button[title="लाइब्रेरी"]').click()
+  await page.locator('button[title="Library"]').click()
   await page.waitForTimeout(600)
   await shot(page, '11-library-with-doc')
 
-  await page.getByRole('button', { name: 'प्रारूप से बनाएँ' }).click()
+  await page.getByRole('button', { name: 'From template' }).click()
   await page.waitForSelector('.sheet .tpl-card')
   await page.waitForTimeout(400)
   const tplCount = await page.locator('.sheet .tpl-card').count()
@@ -249,7 +264,7 @@ try {
   await page.locator('.sheet .tpl-card').first().click()
   await page.waitForTimeout(400)
   await shot(page, '13-template-detail')
-  await page.getByRole('button', { name: 'नया दस्तावेज़ बनाएँ' }).click()
+  await page.getByRole('button', { name: 'Create new document' }).click()
   await page.waitForSelector('.paper .ProseMirror')
   await page.waitForTimeout(1000)
   await shot(page, '14-template-doc')
@@ -258,9 +273,9 @@ try {
   else bad('template body missing')
 
   // धारा मैपिंग
-  await page.locator('.topbar button[title="अधिक"]').click()
+  await page.locator('.topbar button[title="More"]').click()
   await page.waitForTimeout(300)
-  await page.getByRole('button', { name: 'धारा मैपिंग' }).click()
+  await page.getByRole('button', { name: 'Section mapping' }).click()
   await page.waitForTimeout(600)
   await shot(page, '15-law-map')
   await page.locator('.sheet .search').fill('302')
@@ -292,7 +307,7 @@ try {
   else bad('horizontal overflow on phone: ' + overflow)
 
   // फ़ोन पर रिबन स्क्रॉल
-  await phone.getByRole('button', { name: 'होम', exact: true }).click()
+  await phone.getByRole('button', { name: 'Home', exact: true }).click()
   await phone.waitForTimeout(300)
   await shot(phone, '22-phone-ribbon')
 
@@ -304,8 +319,8 @@ try {
   await shot(land, '30-landscape-editor')
 
   // अभिमुखता — पृष्ठ भूमि में
-  await land.getByRole('button', { name: 'लेआउट', exact: true }).click()
-  await land.locator('button[title="भूमि"]').click()
+  await land.getByRole('button', { name: 'Layout', exact: true }).click()
+  await land.locator('button[title="Landscape"]').click()
   await land.waitForTimeout(900)
   await shot(land, '31-landscape-page')
   const landRatio = await land.evaluate(() => {

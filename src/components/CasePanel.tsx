@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react'
 import { COURTS, courtByKey } from '../data/courts'
 import { LAW_MAP, LAW_NOTES, lookupSection } from '../data/lawmap'
+import { COURT_EN } from '../i18n'
 import { CASE_FIELDS, remainingFields } from '../lib/fields'
 import type { CaseDetails, CourtKey, RuleRef } from '../types'
+import { useT } from '../lib/useT'
+import type { StrKey } from '../i18n'
 import { Icon } from './icons'
 import { Btn, Chips, Field, Sheet } from './ui'
 
@@ -16,6 +19,7 @@ interface CaseProps {
 }
 
 export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: CaseProps) {
+  const { t, lang } = useT()
   const remaining = useMemo(() => remainingFields(docHtml), [docHtml])
   const court = courtByKey(cd.court)
   const groups = useMemo(() => {
@@ -33,12 +37,12 @@ export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: Case
       onClose={onClose}
       wide
       tall
-      title="केस विवरण"
-      subtitle="यहाँ भरा विवरण दस्तावेज़ के {{फ़ील्ड}} में स्वतः जुड़ जाता है"
+      title={t('case.title')}
+      subtitle={t('case.sub')}
       footer={
         <>
-          <Btn variant="ghost" label="बंद करें" onClick={onClose} />
-          <Btn variant="primary" icon="sparkle" label="सभी फ़ील्ड भरें" onClick={onFill} />
+          <Btn variant="ghost" label={t('c.close')} onClick={onClose} />
+          <Btn variant="primary" icon="sparkle" label={t('rib.fillAll')} onClick={onFill} />
         </>
       }
     >
@@ -50,19 +54,19 @@ export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: Case
             fontSize: 12.5, color: 'var(--muted)',
           }}
         >
-          <strong style={{ color: 'var(--accent)' }}>{remaining.length} फ़ील्ड शेष हैं:</strong>{' '}
+          <strong style={{ color: 'var(--accent)' }}>{t('case.remaining', { n: remaining.length })}</strong>{' '}
           {remaining.slice(0, 12).map((r) => `{{${r}}}`).join(' ')}
         </div>
       )}
 
-      <Field label="न्यायालय">
+      <Field label={t('case.court')}>
         <select
           className="input"
           value={cd.court}
           onChange={(e) => onChange({ court: e.target.value as CourtKey })}
         >
           {COURTS.map((c) => (
-            <option key={c.key} value={c.key}>{c.hi}</option>
+            <option key={c.key} value={c.key}>{lang === 'hi' ? c.hi : COURT_EN[c.key] ?? c.en}</option>
           ))}
         </select>
         <div className="hint">{court.power}</div>
@@ -74,17 +78,21 @@ export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: Case
       {Object.entries(groups).map(([g, fields]) => (
         <div key={g} style={{ marginTop: 16 }}>
           <div className="section-title" style={{ margin: '0 0 8px' }}>
-            <span>{g}</span><span className="line" />
+            <span>{t(`cg.${g}` as StrKey)}</span><span className="line" />
           </div>
           <div className="row2">
             {fields.map((f) => (
-              <Field key={f.key} label={f.label} hint={f.hint}>
+              <Field
+                key={f.key}
+                label={t(`cf.${f.key}` as StrKey)}
+                hint={f.hint ? t(`cfh.${f.key}` as StrKey) : undefined}
+              >
                 {f.key === 'court' ? null : (
                   <input
                     className="input"
                     value={String(cd[f.key] ?? '')}
                     onChange={(e) => onChange({ [f.key]: e.target.value } as Partial<CaseDetails>)}
-                    placeholder={f.label}
+                    placeholder={t(`cf.${f.key}` as StrKey)}
                   />
                 )}
               </Field>
@@ -98,6 +106,7 @@ export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: Case
 
 /* ------------------------------ धारा मैपिंग ---------------------- */
 export function LawSheet({ open, onClose, onInsert }: { open: boolean; onClose: () => void; onInsert?: (t: string) => void }) {
+  const { t } = useT()
   const [q, setQ] = useState('')
   const [act, setAct] = useState<'all' | 'IPC' | 'CrPC' | 'IEA'>('all')
   const list = useMemo(() => {
@@ -108,11 +117,11 @@ export function LawSheet({ open, onClose, onInsert }: { open: boolean; onClose: 
   const legal = (r: RuleRef) => `${r.oldAct} धारा ${r.oldSec} → ${r.newAct} धारा ${r.newSec}`
 
   return (
-    <Sheet open={open} onClose={onClose} wide tall title="धारा मैपिंग — पुरानी संहिता → नई संहिता"
-      subtitle={`IPC → BNS · CrPC → BNSS · साक्ष्य अधिनियम → BSA (01.07.2024 से लागू) · कुल ${LAW_MAP.length} प्रविष्टियाँ`}>
+    <Sheet open={open} onClose={onClose} wide tall title={t('law.title')}
+      subtitle={t('law.sub', { n: LAW_MAP.length })}>
       <div className="search-wrap">
         <span className="ico"><Icon name="search" size={18} /></span>
-        <input className="search" placeholder="धारा खोजें… (जैसे 302, 167, 65B, हत्या)" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="search" placeholder={t('law.search')} aria-label={t('law.search')} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       <div style={{ marginTop: 10 }}>
         <Chips items={['all', 'IPC', 'CrPC', 'IEA']} value={act} onChange={(v) => setAct(v as typeof act)} />
@@ -130,14 +139,14 @@ export function LawSheet({ open, onClose, onInsert }: { open: boolean; onClose: 
             <div className="ctx">{r.en}{r.note ? ` — ${r.note}` : ''}</div>
             {onInsert && (
               <div className="acts">
-                <Btn size="xs" variant="ghost" icon="plus" label="मसौदे में जोड़ें" onClick={() => { onInsert(legal(r)); onClose() }} />
+                <Btn size="xs" variant="ghost" icon="plus" label={t('law.insert')}  onClick={() => { onInsert(legal(r)); onClose() }} />
               </div>
             )}
           </div>
         ))}
       </div>
 
-      <div className="section-title" style={{ marginTop: 22 }}><span>महत्वपूर्ण टिप्पणियाँ</span><span className="line" /></div>
+      <div className="section-title" style={{ marginTop: 22 }}><span>{t('law.notes')}</span><span className="line" /></div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {LAW_NOTES.map((n) => (
           <div key={n.t} className="block" style={{ marginTop: 0 }}>
@@ -147,7 +156,7 @@ export function LawSheet({ open, onClose, onInsert }: { open: boolean; onClose: 
         ))}
       </div>
       <div style={{ marginTop: 14, fontSize: 11, color: 'var(--muted-2)' }}>
-        सूची सांकेतिक है — अंतिम प्रारूप से पूर्व राजपत्र/इण्डिया कोड से मिलान करें।
+        {t('law.disclaimer')}
       </div>
     </Sheet>
   )

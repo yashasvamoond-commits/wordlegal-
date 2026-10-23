@@ -8,6 +8,8 @@ import { AboutSheet, ExportSheet, PageSetup, SettingsSheet } from './components/
 import { PreviewSheet } from './components/PreviewSheet'
 import { CheckerSheet, FindReplaceSheet, VersionsSheet } from './components/ReviewSheets'
 import { Toaster } from './components/ui'
+import { getLang, setLang } from './i18n'
+import { useT } from './lib/useT'
 import { toast } from './lib/toast'
 import { fieldValues, fillTemplate, FALLBACKS, tokenRe } from './lib/fields'
 import { templateById } from './data/templates'
@@ -19,6 +21,7 @@ import {
 import type { CaseDetails, DocRecord, EditorApi, PageSettings, SheetKey, TemplateDef } from './types'
 
 export default function App() {
+  const { t } = useT()
   const [docs, setDocs] = useState<DocRecord[]>(() => loadDocs())
   const [settings, setSettings] = useState<Settings>(() => loadSettings())
   const [currentId, setCurrentId] = useState<string | null>(null)
@@ -27,6 +30,19 @@ export default function App() {
   const api = useRef<EditorApi | null>(null)
 
   const doc = useMemo(() => docs.find((d) => d.id === currentId) ?? null, [docs, currentId])
+
+  /* ---------------------- भाषा (UI) — अंग्रेज़ी प्राथमिक ---------------------- */
+  useEffect(() => {
+    if (settings.lang !== getLang()) setLang(settings.lang)
+    document.documentElement.lang = settings.lang === 'hi' ? 'hi' : 'en'
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const toggleLang = useCallback(() => {
+    const next = getLang() === 'en' ? 'hi' : 'en'
+    setLang(next)
+    setSettings((s) => ({ ...s, lang: next }))
+  }, [])
 
   /* -------------------------- स्थायीकरण --------------------------- */
   useEffect(() => {
@@ -99,7 +115,7 @@ export default function App() {
     if (last) d.caseDetails = { ...last.caseDetails }
     setDocs((ds) => [d, ...ds])
     setCurrentId(d.id)
-    toast('नया लीगल साइज़ मसौदा बनाया गया', 'ok')
+    toast(t('ts.newDoc'), 'ok')
   }
 
   const fromTemplate = (tplId: string, cd?: CaseDetails) => {
@@ -108,14 +124,14 @@ export default function App() {
     const d = createDocFromTemplate(tpl, cd)
     setDocs((ds) => [d, ...ds])
     setCurrentId(d.id)
-    toast('प्रारूप खोला गया — अब विवरण भरें', 'ok')
+    toast(t('tpl.opened'), 'ok')
   }
 
   const pickTemplate = (tpl: TemplateDef, mode: 'new' | 'insert') => {
     if (mode === 'insert' && doc && api.current) {
       const html = fillTemplate(tpl.body, doc.caseDetails, doc.page)
       api.current.insertHtml(html)
-      toast('प्रारूप मसौदे में जोड़ा गया', 'ok')
+      toast(t('tpl.inserted'), 'ok')
     } else {
       fromTemplate(tpl.id, doc?.caseDetails)
     }
@@ -124,10 +140,10 @@ export default function App() {
   const deleteDoc = (id: string) => {
     const d = docs.find((x) => x.id === id)
     if (!d) return
-    if (!confirm(`“${d.title}” को स्थायी रूप से हटाएँ?`)) return
+    if (!confirm(t('ts.deleteConfirm', { t: d.title }))) return
     setDocs((ds) => ds.filter((x) => x.id !== id))
     if (currentId === id) setCurrentId(null)
-    toast('दस्तावेज़ हटाया गया', 'info')
+    toast(t('ts.deleted'), 'info')
   }
 
   const duplicateDoc = (id: string) => {
@@ -136,13 +152,13 @@ export default function App() {
     const copy: DocRecord = {
       ...d,
       id: uid(),
-      title: `${d.title} — प्रतिलिपि`,
+      title: `${d.title} — ${t('c.copy')}`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       versions: [],
     }
     setDocs((ds) => [copy, ...ds])
-    toast('प्रतिलिपि बनाई गई', 'ok')
+    toast(t('ts.duplicated'), 'ok')
   }
 
   const toggleStar = (id: string) => {
@@ -167,9 +183,9 @@ export default function App() {
     const after = (filled.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length
     if (filled !== raw) {
       api.current.setHTML(filled)
-      toast(`${Math.max(0, before - after)} फ़ील्ड भरे गए`, 'ok')
+      toast(t('case.termsFilled', { n: Math.max(0, before - after) }), 'ok')
     } else {
-      toast(before ? 'केस विवरण भरें — फ़ील्ड तब भरेंगे' : 'भरने हेतु कोई फ़ील्ड नहीं मिला', 'info')
+      toast(t(before ? 'case.fillFirst' : 'case.noTerms'), 'info')
     }
   }
 
@@ -178,7 +194,7 @@ export default function App() {
     const html = api.current.getHTML()
     const versions = [
       ...(doc.versions ?? []),
-      { at: Date.now(), html, label: `स्नैपशॉट ${(doc.versions?.length ?? 0) + 1}` },
+      { at: Date.now(), html, label: t('ver.label', { n: (doc.versions?.length ?? 0) + 1 }) },
     ].slice(-20)
     patchDoc({ versions })
   }
@@ -195,7 +211,7 @@ export default function App() {
     setSettings(DEFAULT_SETTINGS)
     localStorage.clear()
     setSheet(null)
-    toast('सारा डेटा मिटा दिया गया', 'info')
+    toast(t('set.cleared'), 'info')
   }
 
   const closeSheet = () => setSheet(null)
@@ -224,6 +240,7 @@ export default function App() {
           onSheet={(s) => setSheet(s)}
           onApi={(a) => { api.current = a }}
           onFillFields={fillFields}
+          onToggleLang={toggleLang}
         />
       ) : (
         <Library
@@ -239,6 +256,7 @@ export default function App() {
           onDelete={deleteDoc}
           onDuplicate={duplicateDoc}
           onStar={toggleStar}
+          onToggleLang={toggleLang}
         />
       )}
 
@@ -246,9 +264,9 @@ export default function App() {
         open={sheet === 'dict'}
         onClose={closeSheet}
         initialQuery={dictQuery}
-        onInsert={doc && api.current ? (t) => {
-          api.current?.insertText(t)
-          toast('शब्द मसौदे में जोड़ा गया', 'ok', 1500)
+        onInsert={doc && api.current ? (txt) => {
+          api.current?.insertText(txt)
+          toast(t('dict.wordInserted'), 'ok', 1500)
         } : undefined}
       />
 
@@ -332,7 +350,7 @@ export default function App() {
       <LawSheet
         open={sheet === 'law'}
         onClose={closeSheet}
-        onInsert={doc && api.current ? (t) => api.current?.insertText(t) : undefined}
+        onInsert={doc && api.current ? (txt) => api.current?.insertText(txt) : undefined}
       />
 
       <SettingsSheet

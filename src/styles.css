@@ -116,6 +116,9 @@ button { cursor: pointer; border: 0; background: none; }
   flex: 0 0 auto;
 }
 
+.lang-btn { min-width: 36px; padding: 0 8px; }
+.lang-btn span { color: var(--accent); }
+
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-mark {
   width: 34px; height: 34px; flex: 0 0 auto;

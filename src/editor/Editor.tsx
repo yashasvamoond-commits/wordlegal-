@@ -23,6 +23,7 @@ import { Btn, Menu } from '../components/ui'
 import { toast } from '../lib/toast'
 import { COURT_LABEL } from '../lib/courtLabel'
 import { replaceAllInDoc, selectionText } from '../lib/textOps'
+import { useT } from '../lib/useT'
 import type { Settings } from '../lib/storage'
 import type { CaseDetails, DocRecord, EditorApi, PageSettings, SheetKey } from '../types'
 import { pageDims } from '../lib/storage'
@@ -37,6 +38,7 @@ interface Props {
   onSheet: (s: SheetKey) => void
   onApi: (api: EditorApi) => void
   onFillFields: () => void
+  onToggleLang: () => void
 }
 
 const KEY_STRIP = [
@@ -47,13 +49,13 @@ const KEY_STRIP = [
 
 export function Editor(p: Props) {
   const { doc, settings } = p
+  const { t, lang } = useT()
   const dims = pageDims(doc.page)
   const pageWpx = dims.w * 96
   const pageHpx = dims.h * 96
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const paperRef = useRef<HTMLDivElement>(null)
-  const scalerRef = useRef<HTMLDivElement>(null)
   const saveTimer = useRef<number | undefined>(undefined)
   const htmlRef = useRef(doc.html)
   const dirtyRef = useRef(false)
@@ -64,15 +66,6 @@ export function Editor(p: Props) {
   const [dirty, setDirty] = useState(false)
   const [menu, setMenu] = useState(false)
   const [counts, setCounts] = useState({ words: 0, chars: 0, tokens: 0 })
-
-  /* आरंभिक गणना (संपादन से पहले भी सही दिखे) */
-  const recount = useCallback((text: string) => {
-    setCounts({
-      words: text.split(/\s+/).filter(Boolean).length,
-      chars: text.length,
-      tokens: (text.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length,
-    })
-  }, [])
   const [paperH, setPaperH] = useState(pageHpx)
   const [guideCount, setGuideCount] = useState(1)
 
@@ -82,6 +75,14 @@ export function Editor(p: Props) {
   )
 
   const docFontSizePt = parseFloat(settings.docSize) || 12
+
+  const recount = useCallback((text: string) => {
+    setCounts({
+      words: text.split(/\s+/).filter(Boolean).length,
+      chars: text.length,
+      tokens: (text.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length,
+    })
+  }, [])
 
   const editor = useEditor({
     extensions: [
@@ -105,7 +106,7 @@ export function Editor(p: Props) {
       TableRow,
       TableHeader,
       TableCell,
-      Placeholder.configure({ placeholder: 'यहाँ अपना हिन्दी विधिक मसौदा लिखें…' }),
+      Placeholder.configure({ placeholder: t('ed.placeholder') }),
       FontSize,
       LineHeight,
       Indent,
@@ -139,15 +140,15 @@ export function Editor(p: Props) {
   useEffect(() => {
     if (!editor) return
     recount(editor.getText())
-    const t = setTimeout(() => recount(editor.getText()), 300)
-    return () => clearTimeout(t)
+    const tt = setTimeout(() => recount(editor.getText()), 300)
+    return () => clearTimeout(tt)
   }, [editor, doc.id, recount])
 
   /* ------------------------------ API ---------------------------- */
   useEffect(() => {
     if (!editor) return
     const api: EditorApi = {
-      insertText: (t) => { editor.chain().focus().insertContent(t).run() },
+      insertText: (txt) => { editor.chain().focus().insertContent(txt).run() },
       insertHtml: (h) => { editor.chain().focus().insertContent(h).run() },
       getHTML: () => editor.getHTML(),
       getText: () => editor.getText(),
@@ -176,11 +177,11 @@ export function Editor(p: Props) {
 
   useEffect(() => {
     measure()
-    const t = setTimeout(measure, 120)
+    const tt = setTimeout(measure, 120)
     const ro = new ResizeObserver(() => measure())
     if (paperRef.current) ro.observe(paperRef.current)
     window.addEventListener('resize', measure)
-    return () => { clearTimeout(t); ro.disconnect(); window.removeEventListener('resize', measure) }
+    return () => { clearTimeout(tt); ro.disconnect(); window.removeEventListener('resize', measure) }
   }, [measure, doc.html])
 
   /* ------------------------------ फ़िट --------------------------- */
@@ -253,36 +254,44 @@ export function Editor(p: Props) {
   return (
     <div className="app">
       <header className="topbar">
-        <Btn icon="back" size="sm" title="लाइब्रेरी" onClick={goBack} />
+        <Btn icon="back" size="sm" title={t('tb.library')} onClick={goBack} />
         <input
           className="doc-title-input"
           value={doc.title}
           onChange={(e) => p.onChange({ title: e.target.value, updatedAt: Date.now() })}
           onBlur={flush}
-          placeholder="दस्तावेज़ का शीर्षक"
-          aria-label="दस्तावेज़ का शीर्षक"
+          placeholder={t('tb.titlePlaceholder')}
+          aria-label={t('tb.titlePlaceholder')}
         />
         <span className={`save-pill ${dirty ? 'dirty' : ''}`}>
           <span className="dot" />
-          <span className="label">{dirty ? 'सहेजा जा रहा…' : 'सहेजा गया'}</span>
+          <span className="label">{dirty ? t('tb.saving') : t('tb.saved')}</span>
         </span>
-        <Btn icon="book" size="sm" title="शब्दकोश" onClick={() => p.onSheet('dict')} />
+        <Btn
+          size="sm"
+          title={lang === 'en' ? t('tb.switchToHindi') : t('tb.switchToEnglish')}
+          onClick={p.onToggleLang}
+          className="lang-btn"
+        >
+          <span style={{ fontWeight: 700, letterSpacing: '.4px', fontSize: 12.5 }}>{lang === 'en' ? 'EN' : 'हि'}</span>
+        </Btn>
+        <Btn icon="book" size="sm" title={t('tb.dictionary')} onClick={() => p.onSheet('dict')} />
         <div style={{ position: 'relative' }}>
-          <Btn icon="morev" size="sm" title="अधिक" onClick={() => setMenu((v) => !v)} />
+          <Btn icon="morev" size="sm" title={t('c.more')} onClick={() => setMenu((v) => !v)} />
           {menu && (
             <Menu
               onClose={() => setMenu(false)}
               items={[
-                { label: 'प्रिंट पूर्वावलोकन', icon: 'eye', onClick: () => p.onSheet('preview') },
-                { label: 'निर्यात (PDF / DOCX)', icon: 'download', onClick: () => p.onSheet('export') },
-                { label: 'केस विवरण भरें', icon: 'user', onClick: () => p.onSheet('case') },
-                { label: 'पृष्ठ सेटिंग', icon: 'layout', onClick: () => p.onSheet('page') },
-                { label: 'संस्करण इतिहास', icon: 'history', onClick: () => p.onSheet('versions') },
+                { label: t('menu.preview'), icon: 'eye', onClick: () => p.onSheet('preview') },
+                { label: t('menu.export'), icon: 'download', onClick: () => p.onSheet('export') },
+                { label: t('menu.case'), icon: 'user', onClick: () => p.onSheet('case') },
+                { label: t('menu.pageSetup'), icon: 'layout', onClick: () => p.onSheet('page') },
+                { label: t('menu.versions'), icon: 'history', onClick: () => p.onSheet('versions') },
                 null,
-                { label: 'विधिक शब्दकोश', icon: 'book', onClick: () => p.onSheet('dict') },
-                { label: 'धारा मैपिंग', icon: 'scales', onClick: () => p.onSheet('law') },
-                { label: 'सेटिंग्स', icon: 'settings', onClick: () => p.onSheet('settings') },
-                { label: 'ऐप के बारे में', icon: 'info', onClick: () => p.onSheet('about') },
+                { label: t('menu.dictionary'), icon: 'book', onClick: () => p.onSheet('dict') },
+                { label: t('menu.law'), icon: 'scales', onClick: () => p.onSheet('law') },
+                { label: t('tb.settings'), icon: 'settings', onClick: () => p.onSheet('settings') },
+                { label: t('menu.about'), icon: 'info', onClick: () => p.onSheet('about') },
               ]}
             />
           )}
@@ -292,7 +301,7 @@ export function Editor(p: Props) {
       <Ribbon
         ed={editor}
         tab={tab}
-        setTab={(t) => { setTab(t); p.onSettings({ lastTab: t }) }}
+        setTab={(next) => { setTab(next); p.onSettings({ lastTab: next }) }}
         page={doc.page}
         onPage={onChangePage}
         cd={doc.caseDetails}
@@ -313,7 +322,6 @@ export function Editor(p: Props) {
       <div className="canvas" ref={canvasRef} onDoubleClick={() => editor?.commands.focus()}>
         <div
           className="scaler"
-          ref={scalerRef}
           style={{ width: pageWpx * zoom, height: Math.max(pageHpx, paperH) * zoom }}
         >
           <div
@@ -354,7 +362,7 @@ export function Editor(p: Props) {
             )}
             <div className="guide-layer">
               {guides.map((y, i) => (
-                <div key={i} className="page-guide" style={{ top: y }} data-label={`पृष्ठ ${i + 2}`} />
+                <div key={i} className="page-guide" style={{ top: y }} data-label={`${t('c.page')} ${i + 2}`} />
               ))}
             </div>
             <EditorContent editor={editor} />
@@ -363,7 +371,7 @@ export function Editor(p: Props) {
       </div>
 
       {settings.showKeyboardStrip && (
-        <div className="key-strip">
+        <div className="key-strip" aria-label={t('ed.symbols')}>
           {KEY_STRIP.map((k) => (
             <button key={k} type="button" onClick={() => editor?.chain().focus().insertContent(k).run()}>{k}</button>
           ))}
@@ -371,30 +379,30 @@ export function Editor(p: Props) {
       )}
 
       <footer className="statusbar">
-        <span className="status-item"><Icon name="page" size={13} /> पृष्ठ <b>{guideCount}</b></span>
-        <span className="status-item"><b>{counts.words}</b> शब्द</span>
-        <span className="status-item"><b>{counts.chars}</b> अक्षर</span>
+        <span className="status-item"><Icon name="page" size={13} /> {t('c.page')} <b>{guideCount}</b></span>
+        <span className="status-item"><b>{counts.words}</b> {t('c.words')}</span>
+        <span className="status-item"><b>{counts.chars}</b> {t('ed.chars')}</span>
         {counts.tokens > 0 && (
           <button
             type="button"
             className="status-item"
             style={{ color: 'var(--accent)' }}
-            title="बचे हुए फ़ील्ड भरें"
+            title={t('rib.fillFields')}
             onClick={p.onFillFields}
           >
-            <Icon name="sparkle" size={13} /> <b>{counts.tokens}</b> फ़ील्ड शेष — भरें
+            <Icon name="sparkle" size={13} /> <b>{counts.tokens}</b> {t('ed.fieldsPending')}
           </button>
         )}
-        <span className="status-item"><Icon name="scales" size={13} /> {COURT_LABEL(doc.caseDetails)}</span>
+        <span className="status-item"><Icon name="scales" size={13} /> {COURT_LABEL(doc.caseDetails, lang)}</span>
         <span className="spacer" />
         <span className="status-item">
-          <Btn icon="minus" size="xs" title="छोटा" onClick={() => setZoomManual(zoom - 0.1)} />
+          <Btn icon="minus" size="xs" title={t('rib.zoomOut')} onClick={() => setZoomManual(zoom - 0.1)} />
           <b style={{ minWidth: 38, textAlign: 'center' }}>{Math.round(zoom * 100)}%</b>
-          <Btn icon="plus" size="xs" title="बड़ा" onClick={() => setZoomManual(zoom + 0.1)} />
-          <Btn icon="fit" size="xs" title="फ़िट" onClick={() => setFitMode(true)} />
+          <Btn icon="plus" size="xs" title={t('rib.zoomIn')} onClick={() => setZoomManual(zoom + 0.1)} />
+          <Btn icon="fit" size="xs" title={t('rib.fitWidth')} onClick={() => setFitMode(true)} />
         </span>
         <span className="status-item">
-          <Btn icon="keyboard" size="xs" title="विधिक चिह्न" onClick={() => p.onSettings({ showKeyboardStrip: !settings.showKeyboardStrip })} />
+          <Btn icon="keyboard" size="xs" title={t('rib.punctStrip')} onClick={() => p.onSettings({ showKeyboardStrip: !settings.showKeyboardStrip })} />
         </span>
       </footer>
     </div>

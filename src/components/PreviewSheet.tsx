@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { geomOf, paginate, preloadImages, type TypeCSS } from '../lib/paginate'
 import { exportPDF, saveOrShare } from '../lib/exporters'
 import { toast } from '../lib/toast'
+import { useT } from '../lib/useT'
 import { watermarkOf } from '../lib/watermark'
 import type { PageSettings } from '../types'
 import { Btn, Loading, Sheet } from './ui'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function PreviewSheet({ open, onClose, html, page, css, title, onExportClick }: Props) {
+  const { t } = useT()
   const [pages, setPages] = useState<string[] | null>(null)
   const [scale, setScale] = useState(0.8)
   const [busy, setBusy] = useState(false)
@@ -54,14 +56,14 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
       const blob = await exportPDF(html, page, css, title)
       const res = await saveOrShare(blob, `${(title || 'wordlegal').replace(/[\\/:*?"<>|]+/g, '-')}.pdf`, 'application/pdf')
       toast(
-        res === 'shared' ? 'PDF तैयार — शेयर शीट खुली'
-          : res === 'saved' ? 'PDF सहेज दी गई'
-            : 'PDF डाउनलोड हो गई',
+        res === 'shared' ? t('pv.pdfReady')
+          : res === 'saved' ? t('pv.pdfSaved')
+            : t('pv.pdfDownloaded'),
         'ok',
       )
     } catch (e) {
       console.error(e)
-      toast('PDF निर्माण विफल', 'err')
+      toast(t('pv.pdfFailed'), 'err')
     } finally {
       setBusy(false)
     }
@@ -75,22 +77,26 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
       onClose={onClose}
       wide
       tall
-      title="प्रिंट पूर्वावलोकन"
-      subtitle={`${pages?.length ?? 0} पृष्ठ · ${page.size.toUpperCase()} · ${page.orientation === 'landscape' ? 'भूमि' : 'खड़ा'}`}
+      title={t('pv.title')}
+      subtitle={t('pv.sub', {
+        n: pages?.length ?? 0,
+        size: page.size.toUpperCase(),
+        orient: page.orientation === 'landscape' ? t('pg.landscape') : t('pg.portrait'),
+      })}
       footer={
         <>
           <div style={{ flex: 1, display: 'flex', gap: 6, alignItems: 'center' }}>
-            <Btn icon="zoomOut" size="sm" onClick={() => setScale((s) => Math.max(0.28, s - 0.1))} title="छोटा" />
+            <Btn icon="zoomOut" size="sm" onClick={() => setScale((s) => Math.max(0.28, s - 0.1))} title={t('rib.zoomOut')}  />
             <span style={{ fontSize: 12, minWidth: 40, textAlign: 'center' }}>{Math.round(scale * 100)}%</span>
-            <Btn icon="zoomIn" size="sm" onClick={() => setScale((s) => Math.min(1.6, s + 0.1))} title="बड़ा" />
+            <Btn icon="zoomIn" size="sm" onClick={() => setScale((s) => Math.min(1.6, s + 0.1))} title={t('rib.zoomIn')}  />
           </div>
-          {onExportClick && <Btn icon="settings" label="विकल्प" variant="ghost" onClick={onExportClick} />}
-          <Btn icon="download" label={busy ? 'बन रहा है…' : 'PDF साझा करें'} variant="primary" onClick={doPdf} disabled={busy} />
+          {onExportClick && <Btn icon="settings" label={t('pv.options')}  variant="ghost" onClick={onExportClick} />}
+          <Btn icon="download" label={busy ? t('ex.building') : t('pv.sharePdf')} variant="primary" onClick={doPdf} disabled={busy} />
         </>
       }
     >
       {!pages ? (
-        <Loading label="पृष्ठ बन रहे हैं…" />
+        <Loading label={t('pv.building')} />
       ) : (
         <div className="preview-wrap" style={{ margin: -14, borderRadius: 0 }}>
           {pages.map((content, i) => (
@@ -138,7 +144,7 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
               </div>
             </div>
           ))}
-          {pages.length === 0 && <div style={{ color: '#cbd5e1', padding: 24 }}>दस्तावेज़ खाली है</div>}
+          {pages.length === 0 && <div style={{ color: '#cbd5e1', padding: 24 }}>{t('pv.empty')}</div>}
         </div>
       )}
     </Sheet>
@@ -146,9 +152,10 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
 }
 
 export function PreviewHint() {
+  const { t } = useT()
   return (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11.5, color: 'var(--muted-2)' }}>
-      <Icon name="info" size={14} /> पूर्वावलोकन वही है जो PDF में जाएगा
+      <Icon name="info" size={14} /> {t('pv.hint')}
     </div>
   )
 }

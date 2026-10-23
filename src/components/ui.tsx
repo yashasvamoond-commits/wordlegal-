@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Icon, type IconName } from './icons'
 import { subscribeToasts, type ToastMsg } from '../lib/toast'
+import { useT } from '../lib/useT'
 
 /* ------------------------------- Toaster ------------------------- */
 export function Toaster() {
@@ -70,6 +71,7 @@ interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, subtitle, children, footer, wide, tall, center, badge }: SheetProps) {
+  const { t } = useT()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -95,7 +97,7 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, wide, 
             {subtitle && <div className="sub">{subtitle}</div>}
           </div>
           {badge}
-          <Btn icon="close" size="sm" onClick={onClose} title="बंद करें" />
+          <Btn icon="close" size="sm" onClick={onClose} title={t('c.close')} />
         </div>
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
@@ -162,6 +164,7 @@ export const HIGHLIGHT_COLORS = [
 export function ColorGrid({
   colors, value, onPick, allowCustom,
 }: { colors: string[]; value?: string; onPick: (c: string) => void; allowCustom?: boolean }) {
+  const { t } = useT()
   const [custom, setCustom] = useState(value ?? '#000000')
   return (
     <div>
@@ -189,7 +192,7 @@ export function ColorGrid({
             onChange={(e) => setCustom(e.target.value)}
             style={{ width: 46, height: 38, background: 'none', border: '1px solid var(--line)', borderRadius: 9 }}
           />
-          <Btn size="sm" variant="ghost" label="लागू करें" onClick={() => onPick(custom)} />
+          <Btn size="sm" variant="ghost" label={t('c.apply')} onClick={() => onPick(custom)} />
         </div>
       )}
     </div>
@@ -207,13 +210,15 @@ export function Empty({ title, hint, icon = 'search' }: { title: string; hint?: 
   )
 }
 
-export function Loading({ label = 'तैयार हो रहा है…' }: { label?: string }) {
+export function Loading({ label }: { label?: string }) {
+  const { t } = useT()
+  const text = label ?? t('c.loading')
   return (
     <div className="empty">
       <div className="big" style={{ animation: 'spin 1s linear infinite' }}>
         <Icon name="refresh" size={30} />
       </div>
-      <div>{label}</div>
+      <div>{text}</div>
       <style>{'@keyframes spin{to{transform:rotate(360deg)}}'}</style>
     </div>
   )

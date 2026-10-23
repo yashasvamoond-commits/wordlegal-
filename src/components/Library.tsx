@@ -6,6 +6,7 @@ import { fmtAgo, wordCount } from '../lib/storage'
 import type { DocRecord } from '../types'
 import { Icon } from './icons'
 import { Btn, Menu } from './ui'
+import { useT } from '../lib/useT'
 
 interface Props {
   docs: DocRecord[]
@@ -20,9 +21,11 @@ interface Props {
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
   onStar: (id: string) => void
+  onToggleLang: () => void
 }
 
 export function Library(p: Props) {
+  const { t, c, rarity, lang } = useT()
   const [menu, setMenu] = useState(false)
   const [q, setQ] = useState('')
 
@@ -45,25 +48,33 @@ export function Library(p: Props) {
         <div className="brand">
           <div className="brand-mark">व</div>
           <div>
-            <div className="brand-name">वर्डलीगल</div>
-            <div className="brand-sub">हिन्दी विधिक मसौदा स्टूडियो</div>
+            <div className="brand-name">{t('app.name')}</div>
+            <div className="brand-sub">{t('app.tagline')}</div>
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        <Btn icon="search" size="sm" title="शब्दकोश खोजें" onClick={p.onOpenDict} />
-        <Btn icon="settings" size="sm" title="सेटिंग्स" onClick={p.onOpenSettings} />
+        <Btn
+          size="sm"
+          title={lang === 'en' ? t('tb.switchToHindi') : t('tb.switchToEnglish')}
+          onClick={p.onToggleLang}
+          className="lang-btn"
+        >
+          <span style={{ fontWeight: 700, letterSpacing: '.4px', fontSize: 12.5 }}>{lang === 'en' ? 'EN' : 'हि'}</span>
+        </Btn>
+        <Btn icon="search" size="sm" title={t('tb.dictionary')} onClick={p.onOpenDict} />
+        <Btn icon="settings" size="sm" title={t('tb.settings')} onClick={p.onOpenSettings} />
         <div style={{ position: 'relative' }}>
-          <Btn icon="morev" size="sm" title="अधिक" onClick={() => setMenu((v) => !v)} />
+          <Btn icon="morev" size="sm" title={t('c.more')} onClick={() => setMenu((v) => !v)} />
           {menu && (
             <Menu
               onClose={() => setMenu(false)}
               items={[
-                { label: 'विधिक शब्दकोश', icon: 'book', onClick: p.onOpenDict },
-                { label: 'धारा मैपिंग — IPC → BNS', icon: 'scales', onClick: p.onOpenLaw },
-                { label: 'प्रारूप लाइब्रेरी', icon: 'docs', onClick: p.onOpenTemplates },
-                { label: 'ऐप के बारे में', icon: 'info', onClick: p.onOpenAbout },
+                { label: t('menu.dictionary'), icon: 'book', onClick: p.onOpenDict },
+                { label: t('menu.law'), icon: 'scales', onClick: p.onOpenLaw },
+                { label: t('tpl.title'), icon: 'docs', onClick: p.onOpenTemplates },
+                { label: t('menu.about'), icon: 'info', onClick: p.onOpenAbout },
                 null,
-                { label: 'नया खाली मसौदा', icon: 'plus', onClick: p.onNew },
+                { label: t('menu.newBlank'), icon: 'plus', onClick: p.onNew },
               ]}
             />
           )}
@@ -72,22 +83,19 @@ export function Library(p: Props) {
 
       <div className="library">
         <div className="hero">
-          <h1>न्यायालय में जमा करने योग्य हिन्दी मसौदे — लीगल साइज़ पर</h1>
-          <p>
-            मजिस्ट्रेट प्रथम श्रेणी, अपर मुख्य न्यायिक मजिस्ट्रेट एवं अपर जिला एवं सत्र न्यायाधीश के लिए तैयार
-            प्रारूप, पूरा वर्ड-प्रोसेसर, विधिक शब्दकोश तथा पिक्सेल-सटीक PDF निर्यात।
-          </p>
+          <h1>{t('lib.hero.title')}</h1>
+          <p>{t('lib.hero.sub')}</p>
           <div className="hero-tags">
-            <span className="tag">लीगल 8.5 × 14 इंच</span>
-            <span className="tag">{TEMPLATES.length} न्यायालयीन प्रारूप</span>
-            <span className="tag">{DICT_STATS.total} विधिक शब्द</span>
-            <span className="tag">BNS · BNSS · BSA</span>
-            <span className="tag">ऑफ़लाइन</span>
+            <span className="tag">{t('lib.tag.legal')}</span>
+            <span className="tag">{t('lib.tag.templates', { n: TEMPLATES.length })}</span>
+            <span className="tag">{t('lib.tag.dict', { n: DICT_STATS.total })}</span>
+            <span className="tag">{t('lib.tag.laws')}</span>
+            <span className="tag">{t('lib.tag.offline')}</span>
           </div>
           <div className="hero-actions">
-            <Btn icon="plus" label="नया मसौदा" variant="primary" onClick={p.onNew} />
-            <Btn icon="docs" label="प्रारूप से बनाएँ" variant="ghost" onClick={p.onOpenTemplates} />
-            <Btn icon="book" label="शब्दकोश" variant="ghost" onClick={p.onOpenDict} />
+            <Btn icon="plus" label={t('lib.newDraft')} variant="primary" onClick={p.onNew} />
+            <Btn icon="docs" label={t('lib.fromTemplate')} variant="ghost" onClick={p.onOpenTemplates} />
+            <Btn icon="book" label={t('lib.dictionary')} variant="ghost" onClick={p.onOpenDict} />
           </div>
         </div>
 
@@ -96,16 +104,17 @@ export function Library(p: Props) {
             <span className="ico"><Icon name="search" size={18} /></span>
             <input
               className="search"
-              placeholder="अपने दस्तावेज़ खोजें…"
+              placeholder={t('lib.searchDocs')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              aria-label={t('lib.searchDocs')}
             />
             {q && <span className="search-clear"><Btn icon="close" size="xs" onClick={() => setQ('')} /></span>}
           </div>
         )}
 
         <div className="section-title">
-          <span>आपके दस्तावेज़</span>
+          <span>{t('lib.section.docs')}</span>
           <span className="line" />
           <span style={{ textTransform: 'none', letterSpacing: 0 }}>{p.docs.length}</span>
         </div>
@@ -113,77 +122,77 @@ export function Library(p: Props) {
         <div className="doc-grid">
           <button type="button" className="doc-card quick" onClick={p.onNew}>
             <Icon name="plus" size={24} />
-            <span style={{ fontWeight: 600 }}>खाली लीगल मसौदा</span>
-            <span style={{ fontSize: 11 }}>न्यायालय शीर्षक सहित तैयार</span>
+            <span style={{ fontWeight: 600 }}>{t('lib.blankCard')}</span>
+            <span style={{ fontSize: 11 }}>{t('lib.blankCardHint')}</span>
           </button>
 
           {docs.map((d) => (
             <div key={d.id} className="doc-card" onClick={() => p.onOpen(d.id)} role="button" tabIndex={0}>
               <div className="dc-top">
-                <div className="dc-title">{d.title || 'शीर्षकहीन मसौदा'}</div>
+                <div className="dc-title">{d.title || t('lib.untitled')}</div>
                 <button
                   type="button"
                   className={`star ${d.starred ? 'on' : ''}`}
                   onClick={(e) => { e.stopPropagation(); p.onStar(d.id) }}
-                  aria-label="पसंदीदा"
+                  aria-label={t('lib.favourite')}
                 >
                   <Icon name="star" size={16} />
                 </button>
               </div>
               <div className="dc-sub">
-                {COURT_LABEL(d.caseDetails)} · {wordCount(d.html)} शब्द
+                {COURT_LABEL(d.caseDetails, lang)} · {wordCount(d.html)} {t('c.words')}
               </div>
               <div className="dc-meta">
-                <span className="dc-badge">{d.page.orientation === 'landscape' ? 'भूमि' : 'खड़ा'}</span>
+                <span className="dc-badge">{d.page.orientation === 'landscape' ? t('rib.landscape') : t('rib.portrait')}</span>
                 <span className="dc-badge">{d.page.size.toUpperCase()}</span>
                 <span style={{ marginLeft: 'auto' }}>{fmtAgo(d.updatedAt)}</span>
               </div>
               <div className="del" onClick={(e) => e.stopPropagation()}>
-                <Btn icon="copy" size="xs" title="प्रतिलिपि" onClick={() => p.onDuplicate(d.id)} />
-                <Btn icon="trash" size="xs" variant="danger" title="हटाएँ" onClick={() => p.onDelete(d.id)} />
+                <Btn icon="copy" size="xs" title={t('c.duplicate')} onClick={() => p.onDuplicate(d.id)} />
+                <Btn icon="trash" size="xs" variant="danger" title={t('c.delete')} onClick={() => p.onDelete(d.id)} />
               </div>
             </div>
           ))}
         </div>
 
         <div className="section-title">
-          <span>लोकप्रिय प्रारूप</span>
+          <span>{t('lib.section.popular')}</span>
           <span className="line" />
           <button type="button" style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--accent)', fontSize: 12 }} onClick={p.onOpenTemplates}>
-            सभी देखें →
+            {t('lib.viewAll')}
           </button>
         </div>
         <div className="tpl-grid">
-          {popular.map((t) => (
-            <button key={t.id} type="button" className="tpl-card" onClick={() => p.onFromTemplate(t.id)}>
-              <div className="t-title">{t.title}</div>
-              <div className="t-sub">{t.subtitle}</div>
+          {popular.map((tpl) => (
+            <button key={tpl.id} type="button" className="tpl-card" onClick={() => p.onFromTemplate(tpl.id)}>
+              <div className="t-title">{tpl.title}</div>
+              <div className="t-sub">{tpl.subtitle}</div>
               <div className="t-foot">
-                <span className="t-stat">{t.category}</span>
-                <span className="t-stat">{t.statute.split(',')[0]}</span>
+                <span className="t-stat">{c(tpl.category)}</span>
+                <span className="t-stat">{tpl.statute.split(',')[0]}</span>
               </div>
             </button>
           ))}
         </div>
 
         <div className="section-title">
-          <span>आज का विधिक शब्द</span>
+          <span>{t('lib.section.wotd')}</span>
           <span className="line" />
         </div>
         <div className="wotd">
           <h4>{wotd.hi}</h4>
-          <div className="en">{wotd.en} · {wotd.cat} · {wotd.rarity}</div>
+          <div className="en">
+            {wotd.en} · {c(wotd.cat)} · {rarity(wotd.rarity)}
+          </div>
           <p>{wotd.meaning}</p>
-          {wotd.usage && <p style={{ fontStyle: 'italic' }}>प्रयोग: {wotd.usage}</p>}
+          {wotd.usage && <p style={{ fontStyle: 'italic' }}>{t('lib.usage')}: {wotd.usage}</p>}
           <div style={{ marginTop: 10 }}>
-            <Btn size="sm" icon="book" label="शब्दकोश खोलें" variant="ghost" onClick={p.onOpenDict} />
+            <Btn size="sm" icon="book" label={t('lib.openDictionary')} variant="ghost" onClick={p.onOpenDict} />
           </div>
         </div>
 
         <div style={{ marginTop: 26, fontSize: 11.5, color: 'var(--muted-2)', lineHeight: 1.6 }}>
-          <strong style={{ color: 'var(--muted)' }}>वर्डलीगल</strong> — सभी दस्तावेज़ आपके डिवाइस पर ही सुरक्षित रहते हैं।
-          कोई डेटा सर्वर पर नहीं भेजा जाता। मसौदे न्यायालय में प्रस्तुत करने से पूर्व तथ्यों, धाराओं एवं
-          संलग्नकों का मिलान अधिवक्ता द्वारा अवश्य किया जाए।
+          <strong style={{ color: 'var(--muted)' }}>{t('app.name')}</strong> — {t('lib.privacy')}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
    ------------------------------------------------------------------ */
 import { DEFAULT_CASE, DEFAULT_PAGE, PAGE_SIZES, courtHeading } from '../data/courts'
 import { todayHi } from './fields'
+import { getLang, tt, type Lang } from '../i18n'
 import type { CaseDetails, DocRecord, PageSettings } from '../types'
 
 const K_DOCS = 'wl.docs.v1'
@@ -20,6 +21,7 @@ export interface Settings {
   docFont: string
   docSize: string
   docLh: string
+  lang: Lang
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   docFont: "'Noto Serif Devanagari', 'Noto Sans Devanagari', serif",
   docSize: '12pt',
   docLh: '1.5',
+  lang: 'en',
 }
 
 export const uid = () =>
@@ -151,15 +154,15 @@ export function fmtDate(ts: number): string {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-export function fmtAgo(ts: number): string {
+export function fmtAgo(ts: number, lang: Lang = getLang()): string {
   const diff = Date.now() - ts
   const m = Math.round(diff / 60000)
-  if (m < 1) return 'अभी';
-  if (m < 60) return `${m} मिनट पहले`
+  if (m < 1) return tt('time.justNow', lang)
+  if (m < 60) return tt('time.minAgo', lang, { n: m })
   const h = Math.round(m / 60)
-  if (h < 24) return `${h} घंटे पहले`
+  if (h < 24) return tt('time.hourAgo', lang, { n: h })
   const d = Math.round(h / 24)
-  if (d < 30) return `${d} दिन पहले`
+  if (d < 30) return tt('time.dayAgo', lang, { n: d })
   return fmtDate(ts).slice(0, 10)
 }
 
