@@ -258,11 +258,18 @@ try {
   else bad('template body missing')
 
   // धारा मैपिंग
-  await page.getByRole('button', { name: 'विधिक', exact: true }).click()
-  await page.locator('button[title="धारा मैपिंग"]').first().click()
+  await page.locator('.topbar button[title="अधिक"]').click()
+  await page.waitForTimeout(300)
+  await page.getByRole('button', { name: 'धारा मैपिंग' }).click()
   await page.waitForTimeout(600)
   await shot(page, '15-law-map')
-  await page.locator('.sheet-head button[title="बंद करें"]').click()
+  await page.locator('.sheet .search').fill('302')
+  await page.waitForTimeout(400)
+  const lawRows = await page.locator('.sheet .check-item').count()
+  if (lawRows > 0) ok(`section mapping works (${lawRows} rows for 302)`)
+  else bad('section mapping empty')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
 
   // रीलोड पर स्थायीकरण
   await page.reload({ waitUntil: 'networkidle' })
