@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PAGE_SIZES } from '../data/courts'
 import { DICT_STATS } from '../data/dictionary'
 import { TEMPLATES } from '../data/templates'
 import { MARGIN_PRESETS } from '../lib/pageHelpers'
-import { exportDOCX, exportHTML, exportPDF, exportTXT, saveOrShare } from '../lib/exporters'
+import { exportDOCX, exportHTML, exportPDF, exportTXT, isNativeApp, saveOrShare, type ExportAction } from '../lib/exporters'
 import type { TypeCSS } from '../lib/paginate'
 import { toast } from '../lib/toast'
 import type { PageSettings, PageSize } from '../types'
@@ -154,9 +154,11 @@ interface ExportProps {
 
 export function ExportSheet({ open, onClose, html, page, css, title }: ExportProps) {
   const [busy, setBusy] = useState<null | 'pdf' | 'docx' | 'html' | 'txt'>(null)
+  const [native, setNative] = useState(false)
+  useEffect(() => { isNativeApp().then(setNative).catch(() => setNative(false)) }, [])
   const [name, setName] = useState(title || 'विधिक-मसौदा')
 
-  const doExport = async (kind: 'pdf' | 'docx' | 'html' | 'txt') => {
+  const doExport = async (kind: 'pdf' | 'docx' | 'html' | 'txt', action: ExportAction = native ? 'share' : 'download') => {
     setBusy(kind)
     const filenameBase = (name.trim() || 'wordlegal').replace(/[\\/:*?"<>|]+/g, '-')
     try {
@@ -177,8 +179,13 @@ export function ExportSheet({ open, onClose, html, page, css, title }: ExportPro
         mime = 'text/plain'
         ext = 'txt' as typeof kind
       }
-      const res = await saveOrShare(blob, `${filenameBase}.${ext}`, mime)
-      toast(res === 'shared' ? 'फ़ाइल तैयार — शेयर शीट खुल गई' : 'फ़ाइल डाउनलोड हो गई', 'ok')
+      const res = await saveOrShare(blob, `${filenameBase}.${ext}`, mime, action)
+      toast(
+        res === 'shared' ? 'फ़ाइल तैयार — शेयर शीट खुल गई'
+          : res === 'saved' ? 'फ़ाइल सहेज दी गई'
+            : 'फ़ाइल डाउनलोड हो गई',
+        'ok',
+      )
       onClose()
     } catch (e) {
       console.error(e)
@@ -189,16 +196,26 @@ export function ExportSheet({ open, onClose, html, page, css, title }: ExportPro
   }
 
   const Row = ({ icon, title: t, desc, kind, badge }: { icon: string; title: string; desc: string; kind: 'pdf' | 'docx' | 'html' | 'txt'; badge?: string }) => (
-    <button type="button" className="check-item" style={{ textAlign: 'left', width: '100%' }} onClick={() => doExport(kind)} disabled={!!busy}>
+    <div className="check-item">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ color: 'var(--accent)' }}><Icon name={icon} size={20} /></span>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{t} {badge && <span className="tag-mini">{badge}</span>}</div>
           <div className="ctx" style={{ margin: '2px 0 0' }}>{desc}</div>
         </div>
-        {busy === kind ? <span style={{ fontSize: 11, color: 'var(--accent)' }}>बन रहा है…</span> : <Icon name="download" size={17} />}
       </div>
-    </button>
+      <div className="acts" style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {native ? (
+          <>
+            <Btn size="xs" variant="ghost" icon="download" label="डिवाइस में सहेजें" onClick={() => doExport(kind, 'save')} disabled={!!busy} />
+            <Btn size="xs" variant="ghost" icon="share" label="साझा करें" onClick={() => doExport(kind, 'share')} disabled={!!busy} />
+          </>
+        ) : (
+          <Btn size="xs" variant="ghost" icon="download" label="डाउनलोड" onClick={() => doExport(kind, 'download')} disabled={!!busy} />
+        )}
+        {busy === kind && <span style={{ fontSize: 11, color: 'var(--accent)', alignSelf: 'center' }}>बन रहा है…</span>}
+      </div>
+    </div>
   )
 
   return (

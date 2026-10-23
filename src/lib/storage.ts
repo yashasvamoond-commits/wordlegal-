@@ -133,7 +133,9 @@ export function createDocFromTemplate(
   return {
     id: uid(),
     title: tpl.title,
-    html: tpl.body,
+    html: tpl.body
+      .replace(/\{\{\s*COURT_HEAD\s*\}\}/g, courtHeading(cd, true))
+      .replace(/\{\{\s*DATE\s*\}\}/g, todayHi()),
     createdAt: Date.now(),
     updatedAt: Date.now(),
     page: pg,

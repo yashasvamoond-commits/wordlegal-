@@ -64,6 +64,15 @@ export function Editor(p: Props) {
   const [dirty, setDirty] = useState(false)
   const [menu, setMenu] = useState(false)
   const [counts, setCounts] = useState({ words: 0, chars: 0, tokens: 0 })
+
+  /* आरंभिक गणना (संपादन से पहले भी सही दिखे) */
+  const recount = useCallback((text: string) => {
+    setCounts({
+      words: text.split(/\s+/).filter(Boolean).length,
+      chars: text.length,
+      tokens: (text.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length,
+    })
+  }, [])
   const [paperH, setPaperH] = useState(pageHpx)
   const [guideCount, setGuideCount] = useState(1)
 
@@ -116,9 +125,7 @@ export function Editor(p: Props) {
       htmlRef.current = ed.getHTML()
       dirtyRef.current = true
       setDirty(true)
-      const text = ed.getText()
-      const tokens = (text.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length
-      setCounts({ words: text.split(/\s+/).filter(Boolean).length, chars: text.length, tokens })
+      recount(ed.getText())
       window.clearTimeout(saveTimer.current)
       saveTimer.current = window.setTimeout(() => {
         p.onChange({ html: htmlRef.current, updatedAt: Date.now() })
@@ -128,6 +135,13 @@ export function Editor(p: Props) {
       requestAnimationFrame(measure)
     },
   })
+
+  useEffect(() => {
+    if (!editor) return
+    recount(editor.getText())
+    const t = setTimeout(() => recount(editor.getText()), 300)
+    return () => clearTimeout(t)
+  }, [editor, doc.id, recount])
 
   /* ------------------------------ API ---------------------------- */
   useEffect(() => {

@@ -49,12 +49,46 @@ export function downloadBlob(blob: Blob, filename: string) {
   }, 1500)
 }
 
-/** APK में: Cache में लिखकर Android के शेयर शीट से भेजें */
+interface NativeBridge {
+  share(opts: { data: string; fileName: string; mimeType: string }): Promise<unknown>
+  save(opts: { data: string; fileName: string; mimeType: string }): Promise<unknown>
+}
+
+let nativeExport: NativeBridge | null = null
+
+async function getNativeBridge(): Promise<NativeBridge | null> {
+  if (nativeExport) return nativeExport
+  try {
+    const { Capacitor, registerPlugin } = await import('@capacitor/core')
+    if (!Capacitor.isNativePlatform()) return null
+    nativeExport = registerPlugin<NativeBridge>('WordExport')
+    return nativeExport
+  } catch {
+    return null
+  }
+}
+
+export type ExportAction = 'share' | 'save' | 'download'
+
+/** APK में: डिवाइस में सहेजें (SAF) अथवा Android शेयर शीट */
 export async function saveOrShare(
   blob: Blob,
   filename: string,
   mime: string,
-): Promise<'shared' | 'downloaded'> {
+  action: ExportAction = 'share',
+): Promise<'shared' | 'saved' | 'downloaded'> {
+  const bridge = await getNativeBridge()
+  if (bridge) {
+    const data = await blobToBase64(blob)
+    if (action === 'save') {
+      await bridge.save({ data, fileName: filename, mimeType: mime })
+      return 'saved'
+    }
+    if (action === 'share') {
+      await bridge.share({ data, fileName: filename, mimeType: mime })
+      return 'shared'
+    }
+  }
   if (await isNativeApp()) {
     try {
       const { Filesystem, Directory } = await import('@capacitor/filesystem')
@@ -74,7 +108,7 @@ export async function saveOrShare(
       })
       return 'shared'
     } catch (e) {
-      console.warn('native share failed', e)
+      console.warn('native filesystem share failed, falling back to web download', e)
     }
   }
   downloadBlob(blob, filename)

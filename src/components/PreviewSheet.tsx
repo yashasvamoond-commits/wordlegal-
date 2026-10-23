@@ -53,7 +53,12 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
     try {
       const blob = await exportPDF(html, page, css, title)
       const res = await saveOrShare(blob, `${(title || 'wordlegal').replace(/[\\/:*?"<>|]+/g, '-')}.pdf`, 'application/pdf')
-      toast(res === 'shared' ? 'PDF तैयार — शेयर शीट खुली' : 'PDF डाउनलोड हो गई', 'ok')
+      toast(
+        res === 'shared' ? 'PDF तैयार — शेयर शीट खुली'
+          : res === 'saved' ? 'PDF सहेज दी गई'
+            : 'PDF डाउनलोड हो गई',
+        'ok',
+      )
     } catch (e) {
       console.error(e)
       toast('PDF निर्माण विफल', 'err')
