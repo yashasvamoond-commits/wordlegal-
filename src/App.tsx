@@ -9,8 +9,9 @@ import { PreviewSheet } from './components/PreviewSheet'
 import { CheckerSheet, FindReplaceSheet, VersionsSheet } from './components/ReviewSheets'
 import { Toaster } from './components/ui'
 import { toast } from './lib/toast'
-import { fieldValues, fillTemplate } from './lib/fields'
+import { fieldValues, fillTemplate, FALLBACKS } from './lib/fields'
 import { templateById } from './data/templates'
+import { courtHeading } from './data/courts'
 import {
   createBlankDoc, createDocFromTemplate, DEFAULT_SETTINGS, loadDocs, loadSettings,
   saveDocs, saveSettings, uid, type Settings,
@@ -74,7 +75,14 @@ export default function App() {
 
   const updateCase = (patch: Partial<CaseDetails>) => {
     if (!doc) return
-    patchDoc({ caseDetails: { ...doc.caseDetails, ...patch }, updatedAt: Date.now() })
+    const nextCd = { ...doc.caseDetails, ...patch }
+    patchDoc({ caseDetails: nextCd, updatedAt: Date.now() })
+    /* न्यायालय/स्थान बदलने पर केस-शीर्षक भी बदलें */
+    if ((patch.court || patch.place || patch.customCourt !== undefined) && doc.caseDetails.court !== 'custom') {
+      const before = courtHeading(doc.caseDetails, true)
+      const after = courtHeading(nextCd, true)
+      if (before && after && before !== after) window.setTimeout(() => api.current?.replaceAll(before, after), 60)
+    }
   }
 
   const updatePage = (patch: Partial<PageSettings>) => {
@@ -147,8 +155,9 @@ export default function App() {
     let total = 0
     for (const [k, v] of Object.entries(vals)) {
       if (!v) continue
-      const n = api.current.replaceAll(`{{${k}}}`, v)
-      total += n
+      total += api.current.replaceAll(`{{${k}}}`, v)
+      const fb = FALLBACKS[k]
+      if (fb && fb.length > 2 && fb !== v) total += api.current.replaceAll(fb, v)
     }
     toast(total ? `${total} फ़ील्ड भरे गए` : 'भरने हेतु कोई फ़ील्ड नहीं मिला', total ? 'ok' : 'info')
   }
@@ -184,7 +193,12 @@ export default function App() {
     [settings.docFont, settings.docSize, settings.docLh],
   )
 
-  const htmlForSheets = () => (api.current ? api.current.getHTML() : doc?.html ?? '')
+  /** निर्यात/पूर्वावलोकन हेतु — {{फ़ील्ड}} स्वतः भरे हुए */
+  const htmlForSheets = () => {
+    if (!doc) return ''
+    const raw = api.current ? api.current.getHTML() : doc.html
+    return settings.autoFill ? fillTemplate(raw, doc.caseDetails, doc.page) : raw
+  }
 
   return (
     <>

@@ -1,8 +1,8 @@
 /* ------------------------------------------------------------------
    स्थानीय संग्रहण — दस्तावेज़, सेटिंग्स, पसंदीदा शब्द
    ------------------------------------------------------------------ */
-import { DEFAULT_CASE, DEFAULT_PAGE, PAGE_SIZES } from '../data/courts'
-import { fillTemplate } from './fields'
+import { DEFAULT_CASE, DEFAULT_PAGE, PAGE_SIZES, courtHeading } from '../data/courts'
+import { todayHi } from './fields'
 import type { CaseDetails, DocRecord, PageSettings } from '../types'
 
 const K_DOCS = 'wl.docs.v1'
@@ -111,7 +111,9 @@ export function createBlankDoc(court: CaseDetails['court'] = 'jmfc', place = '')
   return {
     id: uid(),
     title: 'नया विधिक मसौदा',
-    html: fillTemplate(body, cd, page),
+    html: body
+      .replace(/\{\{\s*COURT_HEAD\s*\}\}/g, courtHeading(cd, true))
+      .replace(/\{\{\s*DATE\s*\}\}/g, todayHi()),
     createdAt: Date.now(),
     updatedAt: Date.now(),
     page,
@@ -131,7 +133,7 @@ export function createDocFromTemplate(
   return {
     id: uid(),
     title: tpl.title,
-    html: fillTemplate(tpl.body, cd, pg),
+    html: tpl.body,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     page: pg,
@@ -159,11 +161,6 @@ export function fmtAgo(ts: number): string {
   return fmtDate(ts).slice(0, 10)
 }
 
-export function todayHi(): string {
-  const d = new Date()
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`
-}
 
 export function readingTime(html: string): number {
   const words = htmlToText(html).split(/\s+/).filter(Boolean).length

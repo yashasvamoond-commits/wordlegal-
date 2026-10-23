@@ -350,6 +350,15 @@ button { cursor: pointer; border: 0; background: none; }
 .doc-content p { margin: 0 0 .5em; text-align: justify; }
 .doc-content p:last-child { margin-bottom: 0; }
 .doc-content strong { font-weight: 700; }
+.doc-token {
+  background: rgba(255, 179, 73, .22);
+  border-bottom: 1px dashed rgba(150, 100, 20, .6);
+  border-radius: 3px;
+  padding: 0 2px;
+  color: #7a4d00;
+  font-size: .92em;
+  letter-spacing: .2px;
+}
 .doc-content em { font-style: italic; }
 .doc-content u { text-decoration: underline; text-underline-offset: 2px; }
 .doc-content h1 { font-size: 1.5em; margin: .4em 0 .3em; text-align: center; }
@@ -579,6 +588,8 @@ button { cursor: pointer; border: 0; background: none; }
 .backdrop.center { align-items: center; padding: 14px; }
 @keyframes fade { from { opacity: 0; } }
 .sheet {
+  position: relative;
+  z-index: 2;
   width: 100%; max-width: 720px;
   max-height: 92dvh;
   background: var(--panel);

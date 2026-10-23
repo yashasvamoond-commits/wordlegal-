@@ -3,6 +3,9 @@
    विधिक ब्लॉक शैली, पृष्ठ-विच्छेद
    ------------------------------------------------------------------ */
 import { Extension, Node } from '@tiptap/core'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import type { Node as PMNode } from '@tiptap/pm/model'
 
 export const FontSize = Extension.create({
   name: 'fontSize',
@@ -181,5 +184,47 @@ export const PageBreak = Node.create({
         ({ chain }: any) =>
           chain().insertContent({ type: 'pageBreak' }).run(),
     } as any
+  },
+})
+
+
+/* ------------------------------------------------------------------
+   {{फ़ील्ड}} टोकन — संपादक में रंगीन दिखें, निर्यात से पहले स्वतः भरें
+   ------------------------------------------------------------------ */
+const TOKEN_RE = /\{\{\s*[A-Z_]+\s*\}\}/g
+
+function buildTokenDecos(doc: PMNode): DecorationSet {
+  const decos: Decoration[] = []
+  doc.descendants((node, pos) => {
+    if (!node.isText) return
+    const text = node.text ?? ''
+    TOKEN_RE.lastIndex = 0
+    let m: RegExpExecArray | null
+    while ((m = TOKEN_RE.exec(text))) {
+      decos.push(
+        Decoration.inline(pos + m.index, pos + m.index + m[0].length, { class: 'doc-token' }),
+      )
+    }
+  })
+  return DecorationSet.create(doc, decos)
+}
+
+export const FieldTokens = Extension.create({
+  name: 'fieldTokens',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('fieldTokens'),
+        state: {
+          init: (_cfg, { doc }) => buildTokenDecos(doc),
+          apply: (tr, old) => (tr.docChanged ? buildTokenDecos(tr.doc) : old),
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state)
+          },
+        },
+      }),
+    ]
   },
 })

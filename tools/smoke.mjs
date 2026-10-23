@@ -164,6 +164,7 @@ try {
   await page.waitForTimeout(400)
   const filled = await pm.innerText()
   if (filled.includes('जयपुर') || filled.includes('मोहन लाल')) ok('case details merged into document')
+  else notes.push('doc text sample: ' + filled.slice(0, 300))
   else bad('case field merge failed')
 
   // प्रिंट पूर्वावलोकन + PDF
@@ -219,23 +220,29 @@ try {
   } catch (e) {
     bad('DOCX export failed: ' + e.message)
   }
-  await page.waitForTimeout(500)
-  const sheetOpen = await page.locator('.sheet').count()
-  if (sheetOpen) {
-    await page.locator('.sheet-head button[title="बंद करें"]').first().click().catch(() => {})
+  await page.waitForTimeout(600)
+  for (let i = 0; i < 3 && (await page.locator('.backdrop').count()) > 0; i++) {
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
   }
 
   // लाइब्रेरी में लौटें + प्रारूप लाइब्रेरी
+  for (let i = 0; i < 3 && (await page.locator('.backdrop').count()) > 0; i++) {
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+  }
   await page.locator('button[title="लाइब्रेरी"]').click()
   await page.waitForTimeout(600)
   await shot(page, '11-library-with-doc')
 
   await page.getByRole('button', { name: 'प्रारूप से बनाएँ' }).click()
   await page.waitForSelector('.tpl-card')
+  await page.waitForTimeout(400)
   const tplCount = await page.locator('.tpl-card').count()
   if (tplCount > 20) ok(`template gallery has ${tplCount} templates`)
   else bad('few templates: ' + tplCount)
   await shot(page, '12-templates')
+  await page.locator('.tpl-card').first().scrollIntoViewIfNeeded()
   await page.locator('.tpl-card').first().click()
   await page.waitForTimeout(400)
   await shot(page, '13-template-detail')

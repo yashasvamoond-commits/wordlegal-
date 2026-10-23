@@ -16,33 +16,59 @@ const esc = (s: string) =>
 
 const or = (v: string | undefined, d: string) => (v && v.trim() ? esc(v.trim()) : d)
 
+/** रिक्त फ़ील्ड हेतु प्रदर्शित पाठ — बाद में इन्हें भी भरा जा सकता है */
+export const FALLBACKS: Record<string, string> = {
+  COURT_HEAD: '[न्यायालय का नाम]',
+  COURT_EN: '[Court name]',
+  CASE: '[प्रकरण संख्या]',
+  FIR: '[एफ.आई.आर. संख्या]',
+  PS: '[थाना]',
+  SECTIONS: '[धाराएँ]',
+  PARTYA: '[पक्षकार — प्रथम]',
+  PARTYA_LABEL: 'अभियुक्त',
+  PARTYB: 'राज्य',
+  PARTYB_LABEL: 'अभियोजन',
+  CLIENT: '[प्रार्थी का नाम]',
+  CLIENTADDR: '[प्रार्थी का पता]',
+  ADDR: '[पता]',
+  PHONE: '',
+  ADV: '[प्रार्थी अधिवक्ता]',
+  ADVREG: '[पंजीकरण संख्या]',
+  ADVADDR: '[अधिवक्ता का पता]',
+  DATE: '',
+  PLACE: '[स्थान]',
+  ROOM: '[न्यायालय कक्ष]',
+  NEXTDATE: '[अगली तिथि]',
+  WATERMARK: '',
+}
+
 /** सभी उपलब्ध फ़ील्ड → मान */
 export function fieldValues(cd: CaseDetails, page?: PageSettings): Record<string, string> {
   const court = cd.court === 'custom'
-    ? or(cd.customCourt, '[न्यायालय का नाम]')
+    ? or(cd.customCourt, FALLBACKS.COURT_HEAD)
     : esc(courtHeading(cd, true))
   return {
     COURT_HEAD: court,
     COURT_EN: esc(cd.court === 'custom' ? cd.customCourt : courtHeading(cd, false)),
-    CASE: or(cd.caseNo, '[प्रकरण संख्या]'),
-    FIR: or(cd.firNo, '[एफ.आई.आर. संख्या]'),
-    PS: or(cd.policeStation, '[थाना]'),
-    SECTIONS: or(cd.sections, '[धाराएँ]'),
-    PARTYA: or(cd.partyA, '[पक्षकार — प्रथम]'),
-    PARTYA_LABEL: or(cd.partyALabel, 'अभियुक्त'),
-    PARTYB: or(cd.partyB, 'राज्य'),
-    PARTYB_LABEL: or(cd.partyBLabel, 'अभियोजन'),
-    CLIENT: or(cd.clientName, '[प्रार्थी का नाम]'),
-    CLIENTADDR: or(cd.clientAddress, '[प्रार्थी का पता]'),
-    ADDR: or(cd.clientAddress, '[पता]'),
+    CASE: or(cd.caseNo, FALLBACKS.CASE),
+    FIR: or(cd.firNo, FALLBACKS.FIR),
+    PS: or(cd.policeStation, FALLBACKS.PS),
+    SECTIONS: or(cd.sections, FALLBACKS.SECTIONS),
+    PARTYA: or(cd.partyA, FALLBACKS.PARTYA),
+    PARTYA_LABEL: or(cd.partyALabel, FALLBACKS.PARTYA_LABEL),
+    PARTYB: or(cd.partyB, FALLBACKS.PARTYB),
+    PARTYB_LABEL: or(cd.partyBLabel, FALLBACKS.PARTYB_LABEL),
+    CLIENT: or(cd.clientName, FALLBACKS.CLIENT),
+    CLIENTADDR: or(cd.clientAddress, FALLBACKS.CLIENTADDR),
+    ADDR: or(cd.clientAddress, FALLBACKS.ADDR),
     PHONE: or(cd.clientPhone, ''),
-    ADV: or(cd.counselName, '[प्रार्थी अधिवक्ता]'),
-    ADVREG: or(cd.counselRegNo, '[पंजीकरण संख्या]'),
-    ADVADDR: or(cd.counselAddress, '[अधिवक्ता का पता]'),
+    ADV: or(cd.counselName, FALLBACKS.ADV),
+    ADVREG: or(cd.counselRegNo, FALLBACKS.ADVREG),
+    ADVADDR: or(cd.counselAddress, FALLBACKS.ADVADDR),
     DATE: or(cd.today, todayHi()),
-    PLACE: or(cd.place, '[स्थान]'),
-    ROOM: or(cd.courtRoom, '[न्यायालय कक्ष]'),
-    NEXTDATE: or(cd.nextDate, '[अगली तिथि]'),
+    PLACE: or(cd.place, FALLBACKS.PLACE),
+    ROOM: or(cd.courtRoom, FALLBACKS.ROOM),
+    NEXTDATE: or(cd.nextDate, FALLBACKS.NEXTDATE),
     WATERMARK: page?.watermarkText ? esc(page.watermarkText) : '',
   }
 }

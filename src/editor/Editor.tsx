@@ -16,7 +16,7 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Placeholder from '@tiptap/extension-placeholder'
-import { FontSize, LineHeight, Indent, BlockStyle, PageBreak } from './extensions'
+import { FontSize, LineHeight, Indent, BlockStyle, PageBreak, FieldTokens } from './extensions'
 import { Ribbon } from '../components/Ribbon'
 import { Icon } from '../components/icons'
 import { Btn, Menu } from '../components/ui'
@@ -63,7 +63,7 @@ export function Editor(p: Props) {
   const [fitMode, setFitMode] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [menu, setMenu] = useState(false)
-  const [counts, setCounts] = useState({ words: 0, chars: 0 })
+  const [counts, setCounts] = useState({ words: 0, chars: 0, tokens: 0 })
   const [paperH, setPaperH] = useState(pageHpx)
   const [guideCount, setGuideCount] = useState(1)
 
@@ -102,6 +102,7 @@ export function Editor(p: Props) {
       Indent,
       BlockStyle,
       PageBreak,
+      FieldTokens,
     ],
     content: doc.html,
     editorProps: {
@@ -116,7 +117,8 @@ export function Editor(p: Props) {
       dirtyRef.current = true
       setDirty(true)
       const text = ed.getText()
-      setCounts({ words: text.split(/\s+/).filter(Boolean).length, chars: text.length })
+      const tokens = (text.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length
+      setCounts({ words: text.split(/\s+/).filter(Boolean).length, chars: text.length, tokens })
       window.clearTimeout(saveTimer.current)
       saveTimer.current = window.setTimeout(() => {
         p.onChange({ html: htmlRef.current, updatedAt: Date.now() })
@@ -358,6 +360,17 @@ export function Editor(p: Props) {
         <span className="status-item"><Icon name="page" size={13} /> पृष्ठ <b>{guideCount}</b></span>
         <span className="status-item"><b>{counts.words}</b> शब्द</span>
         <span className="status-item"><b>{counts.chars}</b> अक्षर</span>
+        {counts.tokens > 0 && (
+          <button
+            type="button"
+            className="status-item"
+            style={{ color: 'var(--accent)' }}
+            title="बचे हुए फ़ील्ड भरें"
+            onClick={p.onFillFields}
+          >
+            <Icon name="sparkle" size={13} /> <b>{counts.tokens}</b> फ़ील्ड शेष — भरें
+          </button>
+        )}
         <span className="status-item"><Icon name="scales" size={13} /> {COURT_LABEL(doc.caseDetails)}</span>
         <span className="spacer" />
         <span className="status-item">
