@@ -33,6 +33,7 @@ jobs:
           cp -f artifacts/report.json ci-run/ 2>/dev/null || true
           cp -f artifacts/sample-export.pdf ci-run/ 2>/dev/null || true
           cp -f artifacts/sample-export.docx ci-run/ 2>/dev/null || true
+          rm -rf ci-run/screens
           cp -Rf artifacts/screens ci-run/screens 2>/dev/null || true
           if [ -d ci-run/screens ]; then
             for f in ci-run/screens/*.png; do

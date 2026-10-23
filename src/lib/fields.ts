@@ -114,7 +114,6 @@ export const FIELD_DEFS: FieldDef[] = [
 ]
 
 export const CASE_FIELDS: { key: keyof CaseDetails; label: string; hint?: string; group: string }[] = [
-  { key: 'court', label: 'न्यायालय', group: 'न्यायालय' },
   { key: 'customCourt', label: 'अन्य न्यायालय का नाम', hint: 'केवल "अन्य" चुनने पर', group: 'न्यायालय' },
   { key: 'place', label: 'स्थान / जिला', group: 'न्यायालय' },
   { key: 'courtRoom', label: 'न्यायालय कक्ष', group: 'न्यायालय' },

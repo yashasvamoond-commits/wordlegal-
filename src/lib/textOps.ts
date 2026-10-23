@@ -1,6 +1,5 @@
 import type { Editor } from '@tiptap/react'
-
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+import type { Node as PMNode } from '@tiptap/pm/model'
 
 export interface Match {
   from: number
@@ -9,22 +8,50 @@ export interface Match {
   context: string
 }
 
+/** दस्तावेज़ के सभी टेक्स्ट-नोड की स्थिति-सूची (बहु-नोड मिलान हेतु) */
+function flatText(doc: PMNode) {
+  const parts: { pos: number; len: number }[] = []
+  let text = ''
+  doc.descendants((node, pos) => {
+    if (!node.isText) return
+    const t = node.text ?? ''
+    if (!t) return
+    parts.push({ pos, len: t.length })
+    text += t
+  })
+  return { text, parts }
+}
+
+function posOf(parts: { pos: number; len: number }[], index: number) {
+  let left = index
+  for (const p of parts) {
+    if (left < p.len) return p.pos + left
+    if (left === p.len) return p.pos + p.len
+    left -= p.len
+  }
+  const last = parts[parts.length - 1]
+  return last ? last.pos + last.len : 0
+}
+
+/** पूरे दस्तावेज़ में खोज — टोकन टूटे हुए हों (mark सीमा) तो भी मिले */
 export function findMatches(ed: Editor, find: string, caseSensitive = false): Match[] {
   if (!find) return []
+  const { text, parts } = flatText(ed.state.doc)
+  const hay = caseSensitive ? text : text.toLowerCase()
+  const needle = caseSensitive ? find : find.toLowerCase()
   const out: Match[] = []
-  const re = new RegExp(escapeRe(find), caseSensitive ? 'g' : 'gi')
-  ed.state.doc.descendants((node, pos) => {
-    if (!node.isText) return
-    const text = node.text ?? ''
-    let m: RegExpExecArray | null
-    re.lastIndex = 0
-    while ((m = re.exec(text))) {
-      const from = pos + m.index
-      const to = from + m[0].length
-      out.push({ from, to, text: m[0], context: text.slice(Math.max(0, m.index - 24), m.index + m[0].length + 24) })
-      if (m[0].length === 0) re.lastIndex++
-    }
-  })
+  let i = 0
+  while (out.length < 500) {
+    const at = hay.indexOf(needle, i)
+    if (at < 0) break
+    out.push({
+      from: posOf(parts, at),
+      to: posOf(parts, at + needle.length),
+      text: text.slice(at, at + needle.length),
+      context: text.slice(Math.max(0, at - 28), at + needle.length + 28),
+    })
+    i = at + Math.max(1, needle.length)
+  }
   return out
 }
 
