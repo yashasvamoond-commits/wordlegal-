@@ -11,14 +11,15 @@
     "✔ autosave indicator saved",
     "✔ dictionary search works (10 results for जमानत)",
     "✔ dictionary word inserted into document",
+    "✔ case details merged into document",
     "✔ preview rendered 1 page(s)",
     "✔ preview page is legal size ratio",
-    "✔ PDF export works (129 KB)",
+    "✔ PDF export works (135 KB)",
     "✔ DOCX export works (11 KB)",
-    "✔ template gallery has 36 templates"
+    "✔ template gallery has 30 templates",
+    "✔ template body loaded into editor"
   ],
   "problems": [
-    "case field merge failed",
-    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('.tpl-card').first()\n    - locator resolved to <button type=\"button\" class=\"tpl-card\">…</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"backdrop \">…</div> intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"backdrop \">…</div> intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    87 × waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"backdrop \">…</div> intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
+    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('button[title=\"धारा मैपिंग\"]').first()\n"
   ]
 }
