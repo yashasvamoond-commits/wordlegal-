@@ -13,6 +13,6 @@
     "✔ dictionary word inserted into document"
   ],
   "problems": [
-    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'केस विवरण' }).first()\n"
+    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('button[title=\"केस विवरण\"]').first()\n"
   ]
 }
