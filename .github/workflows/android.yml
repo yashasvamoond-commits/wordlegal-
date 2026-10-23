@@ -90,6 +90,19 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk artifacts/WordLegal-1.0.0.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/WordLegal-1.0.0-debug.apk
           ls -lh artifacts
+      - name: Verify APK (badging, signature, assets)
+        run: |
+          BT="${ANDROID_HOME}/build-tools/35.0.0"
+          APK=artifacts/WordLegal-1.0.0.apk
+          echo "=== badging ==="
+          "$BT/aapt2" dump badging "$APK" | grep -E "package:|sdkVersion|targetSdkVersion|application-label|launchable-activity" | head -10
+          echo "=== signature ==="
+          "$BT/apksigner" verify --print-certs "$APK" | head -6
+          echo "=== web assets in APK ==="
+          unzip -l "$APK" | grep -E "assets/public/index.html|assets/public/manifest|cordova.js|assets/public/assets/index-.*\.js" | head -6
+          echo "fonts: $(unzip -l "$APK" | grep -c 'assets/public/assets/.*woff')"
+          echo "total entries: $(unzip -l "$APK" | tail -1)"
+          unzip -p "$APK" assets/public/index.html | head -5
       - uses: actions/upload-artifact@v4
         with:
           name: WordLegal-APK
