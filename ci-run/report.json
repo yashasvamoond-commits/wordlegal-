@@ -15,7 +15,6 @@
     "✔ preview rendered 1 page(s)",
     "✔ preview page is legal size ratio",
     "✔ PDF export works (135 KB)",
-    "✔ DOCX export works (11 KB)",
     "✔ template gallery has 30 templates",
     "✔ template body loaded into editor",
     "✔ section mapping works (2 rows for 302)",
@@ -23,5 +22,7 @@
     "✔ no horizontal overflow on phone",
     "✔ landscape orientation applies to page"
   ],
-  "problems": []
+  "problems": [
+    "DOCX export failed: page.waitForEvent: Timeout 90000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================"
+  ]
 }

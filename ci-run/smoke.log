@@ -12,7 +12,10 @@
 ✔ preview rendered 1 page(s)
 ✔ preview page is legal size ratio
 ✔ PDF export works (135 KB)
-✔ DOCX export works (11 KB)
+✘ DOCX export failed: page.waitForEvent: Timeout 90000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
 ✔ template gallery has 30 templates
 ✔ template body loaded into editor
 ✔ section mapping works (2 rows for 302)
@@ -36,7 +39,6 @@ paper {"w":816,"h":1344,"font":"\"Noto Sans Devanagari\", -apple-system, \"Segoe
 ✔ preview rendered 1 page(s)
 ✔ preview page is legal size ratio
 ✔ PDF export works (135 KB)
-✔ DOCX export works (11 KB)
 ✔ template gallery has 30 templates
 ✔ template body loaded into editor
 ✔ section mapping works (2 rows for 302)
@@ -45,4 +47,7 @@ paper {"w":816,"h":1344,"font":"\"Noto Sans Devanagari\", -apple-system, \"Segoe
 ✔ landscape orientation applies to page
 
 --- problems ---
-none
+✘ DOCX export failed: page.waitForEvent: Timeout 90000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
