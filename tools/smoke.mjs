@@ -109,7 +109,7 @@ try {
   // टाइपिंग (देवनागरी सहित)
   const pm = page.locator('.paper .ProseMirror')
   await pm.click()
-  await page.keyboard.press('End')
+  await page.keyboard.press('Control+End')
   await page.keyboard.type('हिन्दी विधिक परीक्षण — धारा 480 बी.एन.एस.एस. के अंतर्गत।')
   await page.waitForTimeout(900)
   const typed = await pm.innerText()
@@ -148,7 +148,7 @@ try {
   else bad('dictionary insert failed')
 
   // केस विवरण
-  await page.getByRole('button', { name: 'केस विवरण' }).first().click()
+  await page.locator('button[title="केस विवरण"]').first().click()
   await page.waitForSelector('.sheet')
   await page.waitForTimeout(300)
   await shot(page, '08-case-details-tablet')
@@ -160,6 +160,9 @@ try {
   await page.waitForTimeout(600)
   await page.locator('.sheet-head button[title="बंद करें"]').click()
   await page.waitForTimeout(400)
+  const filled = await pm.innerText()
+  if (filled.includes('जयपुर') || filled.includes('मोहन लाल')) ok('case details merged into document')
+  else bad('case field merge failed')
 
   // प्रिंट पूर्वावलोकन + PDF
   await page.getByRole('button', { name: 'दृश्य', exact: true }).click()

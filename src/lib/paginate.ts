@@ -332,7 +332,7 @@ const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 function watermarkText(page: PageSettings): string {
-  if (page.watermark === 'none') return ''
+  if (!page.watermark || page.watermark === 'none') return ''
   if (page.watermark === 'custom') return page.watermarkText || ''
   return page.watermark
 }

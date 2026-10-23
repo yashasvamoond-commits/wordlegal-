@@ -26,6 +26,7 @@ import { replaceAllInDoc, selectionText } from '../lib/textOps'
 import type { Settings } from '../lib/storage'
 import type { CaseDetails, DocRecord, EditorApi, PageSettings, SheetKey } from '../types'
 import { pageDims } from '../lib/storage'
+import { watermarkOf } from '../lib/watermark'
 
 interface Props {
   doc: DocRecord
@@ -231,7 +232,7 @@ export function Editor(p: Props) {
   const onChangePage = (patch: Partial<PageSettings>) => p.onChange({ page: { ...doc.page, ...patch } })
   const onChangeCase = (patch: Partial<CaseDetails>) => p.onChange({ caseDetails: { ...doc.caseDetails, ...patch } })
 
-  const wm = doc.page.watermark === 'custom' ? doc.page.watermarkText : doc.page.watermark
+  const wm = watermarkOf(doc.page)
 
   return (
     <div className="app">

@@ -134,13 +134,13 @@ export function SwitchRow({
 
 /* ------------------------------- Chips --------------------------- */
 export function Chips<T extends string>({
-  items, value, onChange,
-}: { items: T[]; value: T; onChange: (v: T) => void }) {
+  items, value, onChange, labels,
+}: { items: T[]; value: T; onChange: (v: T) => void; labels?: Record<string, string> }) {
   return (
     <div className="chipbar no-sb">
       {items.map((it) => (
         <button key={it} type="button" className={`chip ${it === value ? 'on' : ''}`} onClick={() => onChange(it)}>
-          {it}
+          {labels?.[it] ?? it}
         </button>
       ))}
     </div>

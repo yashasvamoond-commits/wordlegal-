@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { geomOf, paginate, preloadImages, type TypeCSS } from '../lib/paginate'
 import { exportPDF, saveOrShare } from '../lib/exporters'
 import { toast } from '../lib/toast'
+import { watermarkOf } from '../lib/watermark'
 import type { PageSettings } from '../types'
 import { Btn, Loading, Sheet } from './ui'
 import { Icon } from './icons'
@@ -61,7 +62,7 @@ export function PreviewSheet({ open, onClose, html, page, css, title, onExportCl
     }
   }
 
-  const wm = page.watermark === 'custom' ? page.watermarkText : page.watermark
+  const wm = watermarkOf(page)
 
   return (
     <Sheet

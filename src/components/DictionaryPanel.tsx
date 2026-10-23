@@ -170,7 +170,12 @@ export function DictionaryPanel({ open, onClose, onInsert, initialQuery = '' }: 
           </div>
 
           <div style={{ marginTop: 10 }}>
-            <Chips items={['all', ...CATEGORIES]} value={cat} onChange={setCat} />
+            <Chips
+              items={['all', ...CATEGORIES]}
+              value={cat}
+              onChange={setCat}
+              labels={{ all: 'सभी श्रेणियाँ' }}
+            />
           </div>
 
           <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
