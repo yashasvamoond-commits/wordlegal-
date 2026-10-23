@@ -24,13 +24,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Smoke test (tablet + phone, PDF/DOCX export)
         id: smoke
-        continue-on-error: true
-        run: node tools/smoke.mjs
+        run: |
+          mkdir -p artifacts
+          node tools/smoke.mjs 2>&1 | tee artifacts/smoke.log
       - name: Publish smoke report to branch (for inspection)
         if: always()
         run: |
           mkdir -p ci-run
           cp -f artifacts/report.json ci-run/ 2>/dev/null || true
+          cp -f artifacts/smoke.log ci-run/ 2>/dev/null || true
           cp -f artifacts/sample-export.pdf ci-run/ 2>/dev/null || true
           cp -f artifacts/sample-export.docx ci-run/ 2>/dev/null || true
           rm -rf ci-run/screens
@@ -44,7 +46,8 @@ jobs:
           git config user.email "ci@wordlegal.app"
           git add -f ci-run
           git commit -m "ci: smoke report [skip ci]" || echo "nothing to commit"
-          git push origin HEAD:${{ github.ref_name }}
+          git pull --rebase --autostash origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }} || true
 
   apk:
     name: Build APK
