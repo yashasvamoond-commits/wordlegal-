@@ -171,7 +171,7 @@ export function Editor(p: Props) {
     const c = canvasRef.current
     if (!c) return 0.6
     const avail = c.clientWidth - (window.innerWidth > 700 ? 48 : 12)
-    return Math.min(1.6, Math.max(0.28, avail / pageWpx))
+    return Math.min(1, Math.max(0.28, avail / pageWpx))
   }, [pageWpx])
 
   useEffect(() => {
