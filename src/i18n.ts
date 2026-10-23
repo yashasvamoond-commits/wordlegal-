@@ -234,7 +234,7 @@ export const STR = {
 
   /* ------------------------------- editor --------------------------- */
   'ed.placeholder': ['Write your Hindi legal draft here…', 'यहाँ अपना हिन्दी विधिक मसौदा लिखें…'],
-  'ed.fieldsPending': ['fields left — fill', 'फ़ील्ड शेष — भरें'],
+  'ed.fieldsPending': ['fields left', 'फ़ील्ड शेष'],
   'ed.chars': ['characters', 'अक्षर'],
   'ed.symbols': ['Legal symbols', 'विधिक चिह्न'],
 
@@ -297,6 +297,7 @@ export const STR = {
   'case.group.counsel': ['Counsel', 'अधिवक्ता'],
   'case.group.other': ['Other', 'अन्य'],
   'case.court': ['Court', 'न्यायालय'],
+  'case.selectCourt': ['Select court', 'न्यायालय चुनें'],
   'case.customCourt': ['Other court name', 'अन्य न्यायालय का नाम'],
   'case.customCourtHint': ['Only when “Other” is selected', 'केवल "अन्य" चुनने पर'],
   'case.place': ['Place / district', 'स्थान / जिला'],

@@ -59,7 +59,7 @@ export function CasePanel({ open, onClose, cd, onChange, onFill, docHtml }: Case
         </div>
       )}
 
-      <Field label={t('case.court')}>
+      <Field label={t('case.selectCourt')}>
         <select
           className="input"
           value={cd.court}
