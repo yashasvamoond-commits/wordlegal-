@@ -17,9 +17,11 @@
     "✔ PDF export works (135 KB)",
     "✔ DOCX export works (11 KB)",
     "✔ template gallery has 30 templates",
-    "✔ template body loaded into editor"
+    "✔ template body loaded into editor",
+    "✔ section mapping works (2 rows for 302)",
+    "✔ persistence works (2 docs after reload)",
+    "✔ no horizontal overflow on phone",
+    "✔ landscape orientation applies to page"
   ],
-  "problems": [
-    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('button[title=\"धारा मैपिंग\"]').first()\n"
-  ]
+  "problems": []
 }

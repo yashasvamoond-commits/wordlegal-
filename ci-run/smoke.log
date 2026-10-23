@@ -15,18 +15,10 @@
 ✔ DOCX export works (11 KB)
 ✔ template gallery has 30 templates
 ✔ template body loaded into editor
-✘ FATAL: locator.click: Timeout 45000ms exceeded.
-Call log:
-  - waiting for locator('button[title="धारा मैपिंग"]').first()
-
-locator.click: Timeout 45000ms exceeded.
-Call log:
-  - waiting for locator('button[title="धारा मैपिंग"]').first()
-
-    at /home/runner/work/wordlegal-/wordlegal-/tools/smoke.mjs:262:61 {
-  log: [ `  - waiting for locator('button[title="धारा मैपिंग"]').first()` ],
-  name: 'TimeoutError'
-}
+✔ section mapping works (2 rows for 302)
+✔ persistence works (2 docs after reload)
+✔ no horizontal overflow on phone
+✔ landscape orientation applies to page
 
 --- notes ---
 ✔ preview server started
@@ -47,9 +39,10 @@ paper {"w":816,"h":1344,"font":"\"Noto Sans Devanagari\", -apple-system, \"Segoe
 ✔ DOCX export works (11 KB)
 ✔ template gallery has 30 templates
 ✔ template body loaded into editor
+✔ section mapping works (2 rows for 302)
+✔ persistence works (2 docs after reload)
+✔ no horizontal overflow on phone
+✔ landscape orientation applies to page
 
 --- problems ---
-✘ FATAL: locator.click: Timeout 45000ms exceeded.
-Call log:
-  - waiting for locator('button[title="धारा मैपिंग"]').first()
-
+none
