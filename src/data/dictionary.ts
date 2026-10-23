@@ -1,8 +1,22 @@
 import type { DictEntry } from '../types'
 import { DICT_CORE } from './dictCore'
 import { DICT_MORE } from './dictMore'
+import { DICT_EXTRA } from './dictExtra'
 
-export const DICTIONARY: DictEntry[] = [...DICT_CORE, ...DICT_MORE]
+/** एक ही हिन्दी शब्द की पुनरावृत्ति हटाएँ (पहली प्रविष्टि प्राथमिक) */
+function dedupe(list: DictEntry[]): DictEntry[] {
+  const seen = new Set<string>()
+  const out: DictEntry[] = []
+  for (const e of list) {
+    const k = e.hi.trim()
+    if (!k || seen.has(k)) continue
+    seen.add(k)
+    out.push(e)
+  }
+  return out
+}
+
+export const DICTIONARY: DictEntry[] = dedupe([...DICT_CORE, ...DICT_MORE, ...DICT_EXTRA])
 
 /** Devanagari-friendly normaliser: strips nukta, zero-width joiners, case. */
 export function norm(s: string): string {
