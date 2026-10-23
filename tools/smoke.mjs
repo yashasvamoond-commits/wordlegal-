@@ -148,7 +148,9 @@ try {
   else bad('dictionary insert failed')
 
   // केस विवरण
-  await page.locator('button[title="केस विवरण"]').first().click()
+  await page.locator('.topbar button[title="अधिक"]').click()
+  await page.waitForTimeout(300)
+  await page.getByRole('button', { name: 'केस विवरण भरें' }).click()
   await page.waitForSelector('.sheet')
   await page.waitForTimeout(300)
   await shot(page, '08-case-details-tablet')
