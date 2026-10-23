@@ -1,0 +1,15 @@
+{
+  "name": "वर्डलीगल — हिन्दी विधिक मसौदा स्टूडियो",
+  "short_name": "वर्डलीगल",
+  "description": "लीगल साइज़ (8.5×14 इंच) हिन्दी विधिक मसौदे, शब्दकोश एवं प्रारूप",
+  "lang": "hi",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
