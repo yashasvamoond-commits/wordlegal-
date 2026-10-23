@@ -1,0 +1,78 @@
+name: WordLegal — APK Build & UI Verification
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+jobs:
+  verify-web:
+    name: Web UI verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Smoke test (tablet + phone, PDF/DOCX export)
+        run: node tools/smoke.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordlegal-screens
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0'
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Create release keystore
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/wordlegal.keystore" \
+            -alias wordlegal -storepass wordlegal2026 -keypass wordlegal2026 \
+            -dname "CN=WordLegal, OU=Legal Drafting, O=WordLegal, L=Jaipur, ST=Rajasthan, C=IN" \
+            -keyalg RSA -keysize 2048 -validity 10950
+      - name: Build debug + release APKs
+        working-directory: android
+        env:
+          WL_KEYSTORE: ${{ runner.temp }}/wordlegal.keystore
+          WL_STORE_PASS: wordlegal2026
+          WL_KEY_ALIAS: wordlegal
+          WL_KEY_PASS: wordlegal2026
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug assembleRelease
+      - name: Collect APKs
+        run: |
+          mkdir -p artifacts
+          cp android/app/build/outputs/apk/release/app-release.apk artifacts/WordLegal-1.0.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/WordLegal-1.0.0-debug.apk
+          ls -lh artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WordLegal-APK
+          path: artifacts/*.apk
+          retention-days: 30
