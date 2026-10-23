@@ -10,9 +10,21 @@
     "✔ hindi typing works",
     "✔ autosave indicator saved",
     "✔ UI defaults to English",
-    "✔ switches to Hindi UI"
+    "✔ switches to Hindi UI",
+    "✔ switches back to English UI",
+    "✔ dictionary search works (16 results for जमानत)",
+    "✔ dictionary word inserted into document",
+    "✔ case details merged into document",
+    "✔ preview rendered 1 page(s)",
+    "✔ preview page is legal size ratio",
+    "✔ PDF export works (135 KB)",
+    "✔ DOCX export works (11 KB)",
+    "✔ template gallery has 30 templates",
+    "✔ template body loaded into editor",
+    "✔ section mapping works (2 rows for 302)",
+    "✔ persistence works (2 docs after reload)",
+    "✔ no horizontal overflow on phone",
+    "✔ landscape orientation applies to page"
   ],
-  "problems": [
-    "FATAL: locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for locator('.topbar button[title=\"Switch UI to English\"]')\n"
-  ]
+  "problems": []
 }
