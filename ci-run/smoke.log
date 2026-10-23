@@ -1,48 +1,43 @@
 ✔ preview server started
 ✔ library rendered
-✔ hindi title present
+✔ title present (WordLegal)
 ✔ legal page ratio 8.5:14 (scaled)
 ✔ devanagari font active
 ✔ court heading block present
 ✔ hindi typing works
 ✔ autosave indicator saved
-✔ dictionary search works (16 results for जमानत)
-✔ dictionary word inserted into document
-✔ case details merged into document
-✔ preview rendered 1 page(s)
-✔ preview page is legal size ratio
-✔ PDF export works (135 KB)
-✔ DOCX export works (11 KB)
-✔ template gallery has 30 templates
-✔ template body loaded into editor
-✔ section mapping works (2 rows for 302)
-✔ persistence works (2 docs after reload)
-✔ no horizontal overflow on phone
-✔ landscape orientation applies to page
+✔ UI defaults to English
+✔ switches to Hindi UI
+✘ FATAL: locator.click: Timeout 45000ms exceeded.
+Call log:
+  - waiting for locator('.topbar button[title="Switch UI to English"]')
+
+locator.click: Timeout 45000ms exceeded.
+Call log:
+  - waiting for locator('.topbar button[title="Switch UI to English"]')
+
+    at /home/runner/work/wordlegal-/wordlegal-/tools/smoke.mjs:141:70 {
+  log: [
+    `  - waiting for locator('.topbar button[title="Switch UI to English"]')`
+  ],
+  name: 'TimeoutError'
+}
 
 --- notes ---
 ✔ preview server started
 ✔ library rendered
-✔ hindi title present
+✔ title present (WordLegal)
 paper {"w":816,"h":1344,"font":"\"Noto Sans Devanagari\", -apple-system, \"Segoe UI\", Roboto, sans-serif","hasCourt":true,"ratio":0.6071428571428571}
 ✔ legal page ratio 8.5:14 (scaled)
 ✔ devanagari font active
 ✔ court heading block present
 ✔ hindi typing works
 ✔ autosave indicator saved
-✔ dictionary search works (16 results for जमानत)
-✔ dictionary word inserted into document
-✔ case details merged into document
-✔ preview rendered 1 page(s)
-✔ preview page is legal size ratio
-✔ PDF export works (135 KB)
-✔ DOCX export works (11 KB)
-✔ template gallery has 30 templates
-✔ template body loaded into editor
-✔ section mapping works (2 rows for 302)
-✔ persistence works (2 docs after reload)
-✔ no horizontal overflow on phone
-✔ landscape orientation applies to page
+✔ UI defaults to English
+✔ switches to Hindi UI
 
 --- problems ---
-none
+✘ FATAL: locator.click: Timeout 45000ms exceeded.
+Call log:
+  - waiting for locator('.topbar button[title="Switch UI to English"]')
+
