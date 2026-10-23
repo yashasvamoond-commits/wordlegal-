@@ -164,7 +164,10 @@ try {
   await page.waitForTimeout(400)
   const filled = await pm.innerText()
   if (filled.includes('जयपुर') || filled.includes('मोहन लाल')) ok('case details merged into document')
-  else notes.push('doc text sample: ' + filled.slice(0, 300))
+  else {
+    notes.push('doc text sample: ' + filled.slice(0, 400))
+    notes.push('remaining tokens: ' + JSON.stringify(await page.locator('.doc-token').allInnerTexts()))
+  }
   else bad('case field merge failed')
 
   // प्रिंट पूर्वावलोकन + PDF

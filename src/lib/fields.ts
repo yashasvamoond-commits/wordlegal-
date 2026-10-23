@@ -73,6 +73,11 @@ export function fieldValues(cd: CaseDetails, page?: PageSettings): Record<string
   }
 }
 
+/** किसी एक फ़ील्ड का टोकन-रेगुलर एक्सप्रेशन */
+export function tokenRe(key: string): RegExp {
+  return new RegExp('\\{\\{\\s*' + key + '\\s*\\}\\}', 'g')
+}
+
 /** प्रारूप में सभी ज्ञात फ़ील्ड भरें */
 export function fillTemplate(html: string, cd: CaseDetails, page?: PageSettings): string {
   const vals = fieldValues(cd, page)

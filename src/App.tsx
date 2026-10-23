@@ -9,7 +9,7 @@ import { PreviewSheet } from './components/PreviewSheet'
 import { CheckerSheet, FindReplaceSheet, VersionsSheet } from './components/ReviewSheets'
 import { Toaster } from './components/ui'
 import { toast } from './lib/toast'
-import { fieldValues, fillTemplate, FALLBACKS } from './lib/fields'
+import { fieldValues, fillTemplate, FALLBACKS, tokenRe } from './lib/fields'
 import { templateById } from './data/templates'
 import { courtHeading } from './data/courts'
 import {
@@ -149,17 +149,28 @@ export default function App() {
     setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, starred: !d.starred } : d)))
   }
 
+  /** सभी {{फ़ील्ड}} एवं पुराने मान केस विवरण से बदलें */
   const fillFields = () => {
     if (!doc || !api.current) return
+    const raw = api.current.getHTML()
     const vals = fieldValues(doc.caseDetails, doc.page)
-    let total = 0
+    let filled = raw
     for (const [k, v] of Object.entries(vals)) {
       if (!v) continue
-      total += api.current.replaceAll(`{{${k}}}`, v)
+      filled = filled.replace(tokenRe(k), v)
       const fb = FALLBACKS[k]
-      if (fb && fb.length > 2 && fb !== v) total += api.current.replaceAll(fb, v)
+      if (fb && fb.length > 2 && fb !== v) {
+        filled = filled.split(fb).join(v)
+      }
     }
-    toast(total ? `${total} फ़ील्ड भरे गए` : 'भरने हेतु कोई फ़ील्ड नहीं मिला', total ? 'ok' : 'info')
+    const before = (raw.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length
+    const after = (filled.match(/\{\{\s*[A-Z_]+\s*\}\}/g) ?? []).length
+    if (filled !== raw) {
+      api.current.setHTML(filled)
+      toast(`${Math.max(0, before - after)} फ़ील्ड भरे गए`, 'ok')
+    } else {
+      toast(before ? 'केस विवरण भरें — फ़ील्ड तब भरेंगे' : 'भरने हेतु कोई फ़ील्ड नहीं मिला', 'info')
+    }
   }
 
   const snapshot = () => {
